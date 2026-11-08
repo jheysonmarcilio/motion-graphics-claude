@@ -1,0 +1,32 @@
+{
+	"DUR": 44.3,
+	"SPLIT": 14.9,
+	"CAPS": [
+		{ "a": 0.05, "b": 1.0, "y": 960, "size": 100, "text": "ISSO QUE VOCÊ | ESTÁ VENDO" },
+		{ "a": 1.0, "b": 2.0, "y": 960, "size": 100, "text": "AQUI EMBAIXO", "kw": "EMBAIXO" },
+		{ "a": 2.0, "b": 3.0, "y": 960, "size": 100, "text": "PARECE | MÁGICA…", "kw": "MÁGICA…", "title": true },
+		{ "a": 3.0, "b": 4.0, "y": 960, "size": 100, "text": "OU COISA | DE FILME?", "kw": "FILME?", "title": true, "boom": true },
+		{ "a": 4.0, "b": 5.9, "y": 960, "size": 100, "text": "MAS NA VERDADE | EU TE GARANTO", "kw": "GARANTO" },
+		{ "a": 7.0, "b": 9.9, "y": 960, "size": 100, "text": "E VOCÊ PODE | APRENDER TAMBÉM", "kw": "APRENDER" },
+		{ "a": 9.95, "b": 11.95, "y": 960, "size": 100, "text": "NÃO PRECISA | DE NENHUM DOM", "kw": "DOM", "strike": true },
+		{ "a": 11.95, "b": 14.0, "y": 960, "size": 100, "text": "NEM DE | PODER MENTAL", "kw": "PODER MENTAL", "strike": true },
+		{ "a": 14.0, "b": 14.85, "y": 960, "size": 100, "text": "AO LONGO DOS | MEUS…" },
+		{ "a": 18.0, "b": 20.0, "text": "QUALQUER | PESSOA COMUM", "kw": "COMUM" },
+		{ "a": 20.0, "b": 22.95, "text": "CONSEGUE FAZER | O MESMO PROCESSO", "kw": "CONSEGUE" },
+		{ "a": 22.95, "b": 25.25, "text": "SE SEGUIR O | PASSO A PASSO", "kw": "PASSO A", "boom": true },
+		{ "a": 29.7, "b": 30.9, "text": "O PASSO A PASSO | EXATO", "kw": "EXATO" },
+		{ "a": 33.95, "b": 34.95, "text": "COM TOTAL | SEGURANÇA", "kw": "SEGURANÇA" },
+		{ "a": 34.95, "b": 35.95, "text": "O MELHOR | DE TUDO…", "kw": "MELHOR" },
+		{ "a": 35.95, "b": 37.45, "text": "O VALOR CABE | NO SEU BOLSO", "kw": "BOLSO" },
+		{ "a": 40.05, "b": 41.9, "text": "QUER APRENDER A | HIPNOTIZAR?", "kw": "HIPNOTIZAR?", "title": true, "boom": true },
+		{ "a": 41.9, "b": 42.9, "y": 1150, "text": "CLICA NO BOTÃO | AQUI EMBAIXO", "kw": "CLICA" }
+	],
+	"COUNT": { "a": 5.9, "b": 7.0 },
+	"INSERTS": [
+		{ "id": "leader", "a": 14.95, "b": 17.95, "seed": 21 },
+		{ "id": "poster", "a": 25.3, "b": 29.65, "seed": 22, "clap": 26.2 },
+		{ "id": "plateia", "a": 30.95, "b": 33.9, "seed": 23 },
+		{ "id": "ingresso", "a": 37.5, "b": 40.0, "seed": 24, "stamp": 38.0 }
+	],
+	"STAMP": 42.95
+}

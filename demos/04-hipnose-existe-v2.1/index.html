@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>04 v2 · A hipnose existe? (Short 9:16, papel recortado)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=JetBrains+Mono:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: Inter, 'Segoe UI', sans-serif; }
+	#stage { position: absolute; left: 50%; top: 50%; width: 1080px; height: 1920px; overflow: hidden; background: #B88A5A; transform-origin: 50% 50%; }
+	#stage > canvas { position: absolute; inset: 0; width: 1080px !important; height: 1920px !important; }
+	#ui { position: absolute; inset: 0; pointer-events: none; }
+	#flash { position: absolute; inset: 0; background: #fff; pointer-events: none; opacity: 0; }
+
+	/* legendas-chave (estilo fixo do canal) — centro, y 1150–1450, fora do rodapé e da faixa direita */
+	.cap { position: absolute; left: 50px; width: 880px; top: 1165px; height: 270px; display: none; align-items: center; justify-content: center; flex-wrap: wrap; align-content: center; text-align: center;
+		font-weight: 900; font-size: 96px; line-height: 1.02; letter-spacing: .01em; text-transform: uppercase; color: #1C1B22;
+		-webkit-text-stroke: 18px #FFFFFF; paint-order: stroke fill; filter: drop-shadow(0 7px 0 rgba(28,27,34,.22)); }
+	.cap.big { font-size: 124px; }
+	.cap.sm { font-size: 70px; -webkit-text-stroke-width: 15px; }
+	.cap .w { display: inline-block; white-space: pre; will-change: transform, opacity; }
+	.cap b { color: #E63946; font-weight: 900; }
+	.cap i { color: #2B59C3; font-style: normal; }
+
+	#hud { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center; padding: 8px 16px; background: rgba(0,0,0,.75); font: 13px 'Segoe UI', sans-serif; color: #ccc; z-index: 10; }
+	#hud button { background: #222; color: #eee; border: 1px solid #444; padding: 5px 11px; cursor: pointer; border-radius: 4px; }
+	#hud input[type=range] { flex: 1; }
+	#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #888; font: 14px 'Segoe UI'; z-index: 20; background: #000; }
+</style>
+<script type="importmap">
+{ "imports": {
+	"three": "/three.js-master/build/three.module.js",
+	"three/addons/": "/three.js-master/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+	<div id="ui"></div>
+	<div id="flash"></div>
+</div>
+<div id="hud">
+	<button id="play">▶</button>
+	<input id="scrub" type="range" min="0" max="88.35" step="0.01" value="0">
+	<span id="tc">000.00</span>
+	<label><input id="sfx" type="checkbox" checked> SFX</label>
+	<span style="opacity:.6">Espaço (com áudio) · ←/→ · H</span>
+</div>
+<audio id="voz" src="/audio/04-hipnose-existe.mp3" preload="auto"></audio>
+<audio id="fx" preload="auto"></audio>
+<div id="loading">recortando papel…</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>03 · Profundo o suficiente? (Short 9:16)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: Inter, 'Segoe UI', sans-serif; color: #EEEAFF; }
+	#stage { position: absolute; left: 50%; top: 50%; width: 1080px; height: 1920px; overflow: hidden; background: #06060C; transform-origin: 50% 50%; }
+	#stage > canvas { position: absolute; inset: 0; width: 1080px !important; height: 1920px !important; }
+	#ui { position: absolute; inset: 0; pointer-events: none; }
+	#fade { position: absolute; inset: 0; background: #06060C; pointer-events: none; opacity: 0; }
+	#flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 40%, #EEEAFF 0%, #3EE6FF 35%, transparent 75%); pointer-events: none; opacity: 0; mix-blend-mode: screen; }
+
+	/* legendas-chave: centrais, acima do rodapé (25%) e fora da faixa direita (15%) */
+	.cap { position: absolute; left: 50px; width: 880px; top: 1165px; height: 270px; display: flex; align-items: center; justify-content: center; text-align: center;
+		font-weight: 900; font-size: 92px; line-height: 1.02; letter-spacing: .01em; text-transform: uppercase; color: #EEEAFF;
+		text-shadow: 0 4px 30px rgba(6,6,12,.95), 0 0 60px rgba(6,6,12,.8); opacity: 0; will-change: transform, opacity, filter; }
+	.cap.big { font-size: 120px; }
+	.cap b { color: #3EE6FF; font-weight: 900; }
+	.cap r { color: #FF5C7A; }
+	.cap .in { position: relative; display: inline-block; }
+	.cap .strike { position: absolute; left: -2%; top: 52%; height: 12px; width: 0; background: #FF5C7A; border-radius: 6px; box-shadow: 0 0 24px #FF5C7A; transform: rotate(-4deg); }
+
+	/* medidor de profundidade */
+	#gauge { position: absolute; left: 46px; top: 330px; width: 230px; height: 760px; opacity: 0; }
+	#gauge .lbl { position: absolute; left: 0; top: -54px; font: 700 21px 'JetBrains Mono', monospace; letter-spacing: .22em; color: #8A88A8; white-space: nowrap; }
+	#gauge .track { position: absolute; left: 22px; top: 0; width: 8px; height: 100%; border-radius: 4px; background: linear-gradient(#3EE6FF, #8B6CFF 60%, #241b55); box-shadow: 0 0 18px rgba(62,230,255,.35); }
+	#gauge .fill { position: absolute; left: 22px; top: 0; width: 8px; border-radius: 4px; background: #EEEAFF; opacity: .9; box-shadow: 0 0 20px #EEEAFF; }
+	#gauge .tick { position: absolute; left: 36px; width: 16px; height: 2px; background: rgba(238,234,255,.35); }
+	#gauge .tick.m { width: 26px; background: rgba(238,234,255,.6); }
+	#gauge .tgt { position: absolute; left: 0; width: 230px; height: 0; opacity: 0; }
+	#gauge .tgt i { position: absolute; left: 6px; top: -2px; width: 74px; height: 0; border-top: 4px dashed currentColor; }
+	#gauge .tgt span { position: absolute; left: 88px; top: -20px; font: 800 30px Inter, sans-serif; letter-spacing: .08em; text-shadow: 0 0 20px rgba(6,6,12,.9); white-space: nowrap; }
+	#gauge .needle { position: absolute; left: 26px; top: 0; width: 0; height: 0; }
+	#gauge .needle i { position: absolute; left: -21px; top: -21px; width: 42px; height: 42px; border-radius: 50%; background: currentColor; box-shadow: 0 0 30px currentColor, 0 0 60px currentColor; border: 5px solid #06060C; }
+
+	/* sentidos */
+	#senses { position: absolute; left: 70px; width: 840px; top: 960px; display: flex; justify-content: space-between; }
+	#senses .s { width: 180px; text-align: center; opacity: 0; }
+	#senses .c { width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; border: 4px solid #8A88A8; display: flex; align-items: center; justify-content: center; background: rgba(6,6,12,.6); }
+	#senses svg { width: 64px; height: 64px; stroke: currentColor; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+	#senses .t { margin-top: 12px; font: 800 30px Inter, sans-serif; letter-spacing: .1em; }
+
+	/* checklist do teste */
+	#check { position: absolute; left: 90px; width: 800px; top: 990px; padding: 34px 40px; border-radius: 26px; background: rgba(10,10,26,.78); border: 2px solid rgba(62,230,255,.35); box-shadow: 0 0 60px rgba(62,230,255,.15); opacity: 0; }
+	#check .h { font: 700 26px 'JetBrains Mono', monospace; letter-spacing: .2em; color: #3EE6FF; margin-bottom: 18px; }
+	#check .row { display: flex; align-items: center; gap: 26px; margin: 18px 0; opacity: 0; }
+	#check .box { flex: none; width: 70px; height: 70px; border-radius: 14px; border: 4px solid #8A88A8; position: relative; }
+	#check .box svg { position: absolute; inset: 4px; stroke: #5CF2C0; stroke-width: 7; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; filter: drop-shadow(0 0 8px #5CF2C0); }
+	#check .tx { font: 800 50px Inter, sans-serif; line-height: 1.05; text-transform: uppercase; }
+
+	/* HUD (fora do vídeo) */
+	#hud { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center; padding: 8px 16px; background: rgba(0,0,0,.75); font: 13px 'Segoe UI', sans-serif; color: #ccc; z-index: 10; }
+	#hud button { background: #222; color: #eee; border: 1px solid #444; padding: 5px 11px; cursor: pointer; border-radius: 4px; }
+	#hud input { flex: 1; }
+	#hud select { background: #222; color: #eee; border: 1px solid #444; padding: 4px; }
+	#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #888; font: 14px 'Segoe UI'; z-index: 20; background: #000; }
+</style>
+<script type="importmap">
+{ "imports": {
+	"three": "/three.js-master/build/three.module.js",
+	"three/addons/": "/three.js-master/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+	<div id="ui"></div>
+	<div id="flash"></div>
+	<div id="fade"></div>
+</div>
+<div id="hud">
+	<button id="play">▶</button>
+	<select id="jump"></select>
+	<input id="scrub" type="range" min="0" max="120" step="0.01" value="0">
+	<span id="tc">000.00</span>
+	<span style="opacity:.6">Espaço (com áudio) · ←/→ · H</span>
+</div>
+<audio id="voz" src="/audio/03-hipnose-profundidade.mp3" preload="auto"></audio>
+<div id="loading">carregando…</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

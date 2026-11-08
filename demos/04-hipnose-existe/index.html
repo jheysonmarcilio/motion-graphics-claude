@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>04 · A hipnose existe? (Short 9:16)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: Inter, 'Segoe UI', sans-serif; color: #EEEAFF; }
+	#stage { position: absolute; left: 50%; top: 50%; width: 1080px; height: 1920px; overflow: hidden; background: #06060C; transform-origin: 50% 50%; }
+	#stage > canvas { position: absolute; inset: 0; width: 1080px !important; height: 1920px !important; }
+	#ui { position: absolute; inset: 0; pointer-events: none; }
+	#fade { position: absolute; inset: 0; background: #06060C; pointer-events: none; opacity: 0; }
+	#flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 40%, #EEEAFF 0%, #3EE6FF 35%, transparent 75%); pointer-events: none; opacity: 0; mix-blend-mode: screen; }
+
+	/* legendas-chave: centrais, acima do rodapé (25%) e fora da faixa direita (15%) */
+	.cap { position: absolute; left: 50px; width: 880px; top: 1165px; height: 270px; display: flex; align-items: center; justify-content: center; text-align: center;
+		font-weight: 900; font-size: 92px; line-height: 1.02; letter-spacing: .01em; text-transform: uppercase; color: #EEEAFF;
+		text-shadow: 0 4px 30px rgba(6,6,12,.95), 0 0 60px rgba(6,6,12,.8); opacity: 0; will-change: transform, opacity, filter; }
+	.cap.big { font-size: 120px; }
+	.cap.sm { font-size: 66px; }
+	.cap.num { font-size: 230px; font-weight: 200; letter-spacing: .04em; }
+	.cap b { color: #3EE6FF; font-weight: 900; }
+	.cap r { color: #FF5C7A; }
+	.cap g { color: #5CF2C0; }
+	.cap a { color: #FFC48A; text-decoration: none; }
+	.cap .in { position: relative; display: inline-block; }
+
+	/* lista de perguntas → ✓ */
+	#qlist { position: absolute; left: 90px; width: 820px; top: 1130px; opacity: 0; }
+	#qlist .row { display: flex; align-items: center; gap: 30px; height: 104px; opacity: 0; }
+	#qlist .mk { flex: none; width: 78px; height: 78px; border-radius: 18px; border: 5px solid #8A88A8; position: relative; font: 900 56px Inter, sans-serif; color: #8A88A8; display: flex; align-items: center; justify-content: center; }
+	#qlist .mk svg { position: absolute; inset: 6px; stroke: #5CF2C0; stroke-width: 8; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; filter: drop-shadow(0 0 10px #5CF2C0); }
+	#qlist .tx { font: 900 80px Inter, sans-serif; text-transform: uppercase; letter-spacing: .01em; text-shadow: 0 4px 30px rgba(6,6,12,.95); white-space: nowrap; }
+	#qlist .foot { margin-top: 10px; padding-left: 108px; font: 700 30px 'JetBrains Mono', monospace; letter-spacing: .2em; color: #5CF2C0; opacity: 0; }
+
+	/* cartão do pesquisador */
+	#card { position: absolute; left: 90px; width: 820px; top: 1150px; padding: 34px 44px 38px; border-radius: 28px; background: rgba(10,10,26,.8); border: 2px solid rgba(62,230,255,.35); box-shadow: 0 0 60px rgba(62,230,255,.15); opacity: 0; }
+	#card .bar { position: absolute; left: 0; top: 34px; bottom: 38px; width: 8px; border-radius: 0 6px 6px 0; background: #3EE6FF; box-shadow: 0 0 20px #3EE6FF; }
+	#card .nm { font: 900 86px Inter, sans-serif; letter-spacing: .01em; line-height: 1; }
+	#card .ln { margin-top: 18px; font: 700 34px 'JetBrains Mono', monospace; letter-spacing: .12em; color: #8A88A8; white-space: nowrap; }
+	#card .ln b { color: #3EE6FF; }
+	#card .ln.uni { color: #EEEAFF; }
+
+	/* contador de participantes */
+	#count { position: absolute; left: 0; width: 1080px; top: 170px; text-align: center; opacity: 0; }
+	#count .n { font: 200 190px Inter, sans-serif; line-height: 1; letter-spacing: .02em; color: #EEEAFF; text-shadow: 0 0 40px rgba(62,230,255,.4); }
+	#count .t { font: 700 30px 'JetBrains Mono', monospace; letter-spacing: .3em; color: #8A88A8; margin-top: 4px; }
+
+	/* chip de descoberta */
+	#chip { position: absolute; left: 0; width: 1080px; top: 130px; display: flex; justify-content: center; opacity: 0; }
+	#chip span { padding: 14px 30px; border-radius: 40px; border: 2px solid currentColor; font: 700 32px 'JetBrains Mono', monospace; letter-spacing: .22em; background: rgba(6,6,12,.6); }
+
+	/* etiquetas presas ao cérebro */
+	.tag { position: absolute; left: 0; top: 0; opacity: 0; }
+	.tag .dot { position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; border-radius: 50%; background: currentColor; box-shadow: 0 0 24px currentColor; }
+	.tag .ln { position: absolute; left: 0; top: -1.5px; height: 3px; background: currentColor; transform-origin: 0 50%; box-shadow: 0 0 10px currentColor; }
+	.tag .tx { position: absolute; white-space: nowrap; font: 800 36px Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 2px 20px rgba(6,6,12,1), 0 0 30px rgba(6,6,12,1); line-height: 1.05; }
+	.tag .tx small { display: block; font: 700 22px 'JetBrains Mono', monospace; letter-spacing: .18em; color: #8A88A8; }
+
+	/* osciloscópio (EEG / sincronia) */
+	#scope { position: absolute; left: 60px; top: 250px; width: 960px; height: 400px; opacity: 0; }
+	#scope .lbl { position: absolute; left: 6px; top: -46px; font: 700 24px 'JetBrains Mono', monospace; letter-spacing: .22em; color: #8A88A8; }
+
+	/* medidor "julgamento crítico" (ilustrativo) */
+	#meter { position: absolute; left: 140px; width: 800px; top: 250px; opacity: 0; }
+	#meter .lbl { font: 700 26px 'JetBrains Mono', monospace; letter-spacing: .2em; color: #8A88A8; display: flex; justify-content: space-between; }
+	#meter .lbl b { color: #EEEAFF; font-weight: 700; }
+	#meter .tr { position: relative; margin-top: 14px; height: 30px; border-radius: 15px; background: rgba(238,234,255,.08); border: 2px solid rgba(238,234,255,.2); overflow: hidden; }
+	#meter .fl { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 15px; background: linear-gradient(90deg, #FF5C7A, #FFC48A); box-shadow: 0 0 24px #FFC48A; }
+
+	/* rótulos de grupos / comparação */
+	.glbl { position: absolute; top: 0; width: 420px; text-align: center; opacity: 0; }
+	.glbl .a { font: 900 50px Inter, sans-serif; letter-spacing: .02em; white-space: nowrap; }
+	.glbl .b { font: 700 24px 'JetBrains Mono', monospace; letter-spacing: .2em; color: #8A88A8; margin-top: 4px; }
+
+	/* carimbo final */
+	#stamp { position: absolute; left: 70px; width: 840px; top: 1140px; height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; }
+	#stamp .s1 { font: 800 60px Inter, sans-serif; letter-spacing: .3em; color: #EEEAFF; text-shadow: 0 4px 30px rgba(6,6,12,.95); }
+	#stamp .s2 { margin-top: 10px; padding: 6px 40px 14px; border: 8px solid #3EE6FF; border-radius: 22px; font: 900 150px Inter, sans-serif; line-height: 1; color: #3EE6FF; letter-spacing: .03em; text-shadow: 0 0 40px rgba(62,230,255,.7); box-shadow: 0 0 50px rgba(62,230,255,.5), inset 0 0 40px rgba(62,230,255,.25); background: rgba(6,6,12,.55); }
+
+	/* HUD (fora do vídeo) */
+	#hud { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center; padding: 8px 16px; background: rgba(0,0,0,.75); font: 13px 'Segoe UI', sans-serif; color: #ccc; z-index: 10; }
+	#hud button { background: #222; color: #eee; border: 1px solid #444; padding: 5px 11px; cursor: pointer; border-radius: 4px; }
+	#hud input { flex: 1; }
+	#hud select { background: #222; color: #eee; border: 1px solid #444; padding: 4px; }
+	#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #888; font: 14px 'Segoe UI'; z-index: 20; background: #000; }
+</style>
+<script type="importmap">
+{ "imports": {
+	"three": "/three.js-master/build/three.module.js",
+	"three/addons/": "/three.js-master/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+	<div id="ui"></div>
+	<div id="flash"></div>
+	<div id="fade"></div>
+</div>
+<div id="hud">
+	<button id="play">▶</button>
+	<select id="jump"></select>
+	<input id="scrub" type="range" min="0" max="90" step="0.01" value="0">
+	<span id="tc">000.00</span>
+	<label><input id="sfx" type="checkbox" checked> SFX</label>
+	<span style="opacity:.6">Espaço (com áudio) · ←/→ · H</span>
+</div>
+<audio id="voz" src="/audio/04-hipnose-existe.mp3" preload="auto"></audio>
+<audio id="fx" src="/renders/04-hipnose-existe-sfx.wav" preload="auto"></audio>
+<div id="loading">carregando…</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

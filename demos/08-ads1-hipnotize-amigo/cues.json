@@ -1,0 +1,30 @@
+{
+	"DUR": 51.27,
+	"CAPS": [
+		{ "a": 0.05, "b": 1.0, "y": 960, "size": 100, "text": "IMAGINA VOCÊ" },
+		{ "a": 1.0, "b": 2.95, "y": 960, "size": 100, "text": "HIPNOTIZAR | SEU AMIGO", "kw": "HIPNOTIZAR", "boom": true },
+		{ "a": 2.95, "b": 4.0, "y": 960, "size": 100, "text": "DESSA MANEIRA AQUI", "kw": "AQUI" },
+		{ "a": 4.0, "b": 5.95, "y": 960, "size": 100, "text": "AINDA ESSA | SEMANA", "kw": "SEMANA" },
+		{ "a": 5.95, "b": 7.95, "y": 960, "size": 100, "text": "SÓ COM AS | PALAVRAS CERTAS", "kw": "PALAVRAS CERTAS" },
+		{ "a": 7.95, "b": 9.95, "y": 960, "size": 100, "text": "EU SEI QUE | PARECE DIFÍCIL…", "kw": "DIFÍCIL" },
+		{ "a": 9.95, "b": 10.95, "y": 960, "size": 100, "text": "MAS QUANDO | VOCÊ CONHECE" },
+		{ "a": 10.95, "b": 12.95, "y": 960, "size": 100, "text": "O PASSO A PASSO | DA HIPNOSE", "kw": "PASSO A" },
+		{ "a": 12.95, "b": 14.25, "y": 960, "size": 100, "text": "TUDO PASSA A | FAZER SENTIDO", "kw": "SENTIDO", "boom": true },
+		{ "a": 18.0, "b": 19.95, "text": "PARA DESTRAVAR | ESSA HABILIDADE", "kw": "DESTRAVAR" },
+		{ "a": 19.95, "b": 22.9, "text": "TODO O MEU | CONHECIMENTO", "kw": "CONHECIMENTO" },
+		{ "a": 29.95, "b": 32.9, "text": "TREINAMENTO CHEIO | DE VIDEOAULAS", "kw": "VIDEOAULAS" },
+		{ "a": 32.95, "b": 34.9, "text": "DIRETO AO PONTO", "kw": "PONTO", "boom": true },
+		{ "a": 34.95, "b": 36.4, "text": "TUDO QUE VOCÊ | PRECISA SABER", "kw": "TUDO" },
+		{ "a": 36.4, "b": 37.55, "text": "PARA DOMINAR | A HIPNOSE", "kw": "DOMINAR" },
+		{ "a": 40.45, "b": 41.3, "text": "E O MELHOR | DE TUDO…", "kw": "MELHOR" },
+		{ "a": 47.92, "b": 48.9, "text": "NÃO PERDE | TEMPO!", "kw": "TEMPO", "boom": true, "dark": true },
+		{ "a": 48.92, "b": 50.0, "y": 1150, "text": "CLICA AQUI | EMBAIXO", "kw": "CLICA" }
+	],
+	"INSERTS": [
+		{ "id": "naoPrecisa", "a": 14.27, "b": 18.0, "bg": "yel", "dir": 1, "seed": 11 },
+		{ "id": "curso", "a": 26.85, "b": 29.95, "bg": "ink", "dir": -1, "seed": 12 },
+		{ "id": "pessoas", "a": 37.55, "b": 40.45, "bg": "blue", "dir": 1, "seed": 13 },
+		{ "id": "preco", "a": 41.3, "b": 44.05, "bg": "red", "dir": -1, "seed": 14, "stamp": 42.0 }
+	],
+	"STAMP": 50.0
+}

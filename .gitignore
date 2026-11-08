@@ -1,0 +1,33 @@
+# ── Biblioteca de terceiros (baixar à parte: three.js r187) ──
+three.js-master/
+node_modules/
+
+# ── Arquivos pessoais gerados ──
+# vídeos finais e renders
+renders/
+*.mp4
+*.mov
+*.webm
+# narrações e áudios
+audio/
+*.mp3
+*.wav
+*.m4a
+# roteiros e transcrições das narrações
+roteiros/
+docs/transcricoes/
+# quadros de conferência soltos
+1/
+*.jpg
+*.jpeg
+
+# ── Pesado / baixável (modelo do whisper, 466 MB) ──
+tools/models/
+
+# ── Configuração local do Claude ──
+.claude/settings.local.json
+
+# ── Sistema ──
+Thumbs.db
+desktop.ini
+.DS_Store
