@@ -1,0 +1,22 @@
+# Sobe o painel + HTTPS automático (Caddy / Let's Encrypt).
+# 1) Aponte o DNS do domínio (registro A) para o IP do servidor.
+# 2) Crie um arquivo .env ao lado deste com:  DOMINIO=painel.seudominio.com
+# 3) docker compose up -d   →   abra https://painel.seudominio.com e crie o administrador.
+services:
+  painel:
+    build: .
+    restart: unless-stopped
+    environment:
+      PAINEL_URL: https://${DOMINIO}
+    volumes:
+      - dados:/dados
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    command: caddy reverse-proxy --from ${DOMINIO} --to painel:8080
+    volumes:
+      - caddy:/data
+volumes:
+  dados:
+  caddy:

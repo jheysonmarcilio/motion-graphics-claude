@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>15 · A memória reescreve (longo 16:9 · estilos alternados + True Crime)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Oswald:wght@500;700&family=Special+Elite&family=Permanent+Marker&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: Inter, 'Segoe UI', sans-serif; }
+	#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 50% 50%; }
+	#stage > canvas { position: absolute; inset: 0; width: 1920px !important; height: 1080px !important; }
+	#ui { position: absolute; inset: 0; pointer-events: none; }
+	#flash { position: absolute; inset: 0; background: #fff; pointer-events: none; opacity: 0; }
+
+	/* legenda fixa do canal (longo): palavras entram conforme a fala */
+	#cap { position: absolute; left: 160px; width: 1600px; bottom: 70px; height: 190px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; align-content: center; text-align: center; gap: 0 .28em;
+		font-weight: 900; font-size: 66px; line-height: 1.08; letter-spacing: .02em; text-transform: uppercase; color: #fff; -webkit-text-stroke: 13px #1A1A3A; paint-order: stroke fill; filter: drop-shadow(0 6px 0 rgba(26,26,58,.4)); }
+	#cap .w { display: inline-block; white-space: pre; will-change: transform, opacity; }
+	#cap.crime { font-family: 'Special Elite', 'Courier New', monospace; font-weight: 400; text-transform: none; font-size: 46px; letter-spacing: .01em; color: #FFB347; -webkit-text-stroke: 0; filter: none; text-shadow: 0 2px 0 #000, 0 0 14px rgba(0,0,0,.9); bottom: 112px; height: 150px; }
+
+	/* True Crime: letterbox, vinheta, grão, arquivo */
+	#tc { position: absolute; inset: 0; pointer-events: none; display: none; }
+	#tc .bar { position: absolute; left: 0; right: 0; height: 96px; background: #000; }
+	#tc .top { top: 0; } #tc .bot { bottom: 0; }
+	#tc .vig { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,.72) 100%); }
+	#tc canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; mix-blend-mode: overlay; opacity: .35; }
+	#tag { position: absolute; left: 78px; top: 128px; font-family: 'Special Elite', 'Courier New', monospace; color: #D8CDB4; font-size: 30px; line-height: 1.35; text-shadow: 0 2px 0 #000; white-space: pre; }
+	#rec { position: absolute; right: 78px; top: 128px; font-family: 'Special Elite', 'Courier New', monospace; color: #E01F2F; font-size: 30px; text-shadow: 0 2px 0 #000; }
+
+	#hud { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center; padding: 8px 16px; background: rgba(0,0,0,.75); font: 13px 'Segoe UI', sans-serif; color: #ccc; z-index: 10; }
+	#hud button { background: #222; color: #eee; border: 1px solid #444; padding: 5px 11px; cursor: pointer; border-radius: 4px; }
+	#hud input[type=range] { flex: 1; }
+	#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #888; font: 14px 'Segoe UI'; z-index: 20; background: #000; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/three.js-master/build/three.module.js", "three/addons/": "/three.js-master/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="stage">
+	<div id="ui"><div id="cap"></div></div>
+	<div id="tc"><div class="vig"></div><canvas id="grain" width="320" height="180"></canvas><div class="bar top"></div><div class="bar bot"></div><div id="tag"></div><div id="rec"></div></div>
+	<div id="flash"></div>
+</div>
+<div id="hud"><button id="play">▶</button><input id="scrub" type="range" min="0" max="118" step="0.01" value="0"><span id="tc2">000.00</span><label><input id="sfx" type="checkbox" checked> SFX</label><span style="opacity:.6">Espaço · ←/→ · H</span></div>
+<audio id="voz" src="/audio/15-estilos-true-crime.mp3" preload="auto"></audio>
+<div id="loading">montando os estilos…</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

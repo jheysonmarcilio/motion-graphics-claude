@@ -9,6 +9,8 @@ Fluxo: **tema → este texto → aprovação do autor → `direcao-de-arte` → 
 Este arquivo basta. O manual `docs/guidelines/roteiro-retencao.md` só se o autor pedir algo fora daqui (não reler por rotina).
 
 ## Princípio
+
+**Voz e assunto do autor:** antes de escrever, ler `brand/dominio-e-voz.md` (quem é, o que ensina, o que defende, muletas e estruturas de fala). O texto narrado tem que soar como o Jheyson falando com uma pessoa: "você"/"a gente", "Olha só,", "Por quê? Porque…", "ou seja," (1–2 marcadores por bloco, nunca em toda frase), cena curta de cliente, mini-experimento, analogia do dia a dia, tom acolhedor, sem guru, sem promessa de cura, sem "galera". Proibido vício de linguagem ("né?", "tá?", "tipo", "e tudo mais"). O autor é sempre Jheyson/Professor Marcilio, nunca "Dill". Escrito para o ouvido: sem gaguejo nem repetição de transcrição. Temas de hipnose/psicologia: usar as explicações dele (cérebro não distingue imaginado de vivido, amígdala, cognição preditiva, "a hipnose acontece antes da indução") e marcar fonte.
 Vídeo = **investigação**, não aula. Quebra de crença → pergunta → explicação → alternância entre linhas. Entre informar já e criar uma pergunta que torne a informação desejada, **crie a pergunta**.
 
 ## Passo 0 — perguntar só se faltar
@@ -36,8 +38,14 @@ Short: só 1–4, 7, 8 e títulos.
 - **Short (30–45 s, 75–110 palavras):** crença (≤ 3 s, ≤ 5 palavras na tela) → contradição/pergunta → explicação em 2 camadas → virada → pergunta-CTA que faz loop com a abertura.
 - Marca do autor: sempre **HipnoEMDR®** (nunca "EMDR" sozinho).
 
+## Ganchos e virada (aplicar sempre)
+- **Abertura = paradoxo dito como fato, na 1ª frase, sem preparação** (~10–16 palavras). Modelos: "X é ilegal, mas…" · "Se você X, então Y" · uma pessoa comum (nome, hora, lugar) fazendo algo que parece absurdo, com algo em jogo.
+- **Sequência:** cenário em 1–2 linhas → escalada em 3–6 batidas (os outros duvidam ou riem; 1–2 exageros "a alegação vs. a realidade") → uma batida de mistério ("Mas espera…") → **virada** com "Acontece que…" ou "Veja bem," + analogia do dia a dia → **final irônico** de 1–2 frases curtas que volta à crença inicial e fecha a última palavra.
+- **Ritmo:** frases de ~13 palavras, contrações, poucas pausas. Short: ~2,5 palavras/s (regra do `roteiro-short`, 75–110 palavras). Longo: a pausa do autor é o guia.
+- Escrever na voz do canal. Não copiar redação de outros criadores; só a estrutura.
+
 ## Entrega
 Salvar `roteiros/NN-tema.md` (análise + texto) e mostrar ao autor **só o texto narrado + títulos** no chat (análise fica no arquivo; não repetir tudo). Esperar aprovação.
 
 ## Checklist (mental, não imprimir)
-Abertura no conflito · pergunta central só respondida no clímax · ≥ 3 microperguntas · A/B alternam sem virar aula · revelação em camadas · final volta à crença · 5 títulos + 3 thumbs + fontes.
+Abertura com paradoxo na 1ª frase · virada com "Acontece que" ou equivalente · final irônico que volta à crença · abertura no conflito · pergunta central só respondida no clímax · ≥ 3 microperguntas · A/B alternam sem virar aula · revelação em camadas · final volta à crença · 5 títulos + 3 thumbs + fontes.

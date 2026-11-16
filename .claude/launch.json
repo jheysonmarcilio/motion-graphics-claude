@@ -36,6 +36,14 @@
         "5176"
       ],
       "port": 5176
+    },
+    {
+      "name": "painel",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "painel/servidor.cjs"
+      ],
+      "port": 5180
     }
   ]
 }

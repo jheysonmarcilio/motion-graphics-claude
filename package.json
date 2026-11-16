@@ -4,9 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "node tools/serve.js",
-    "export": "node tools/export.js"
+    "export": "node tools/export.js",
+    "painel": "node painel/servidor.cjs",
+    "agente": "node painel/agente.cjs",
+    "setup": "node tools/setup.cjs",
+    "postinstall": "node tools/setup.cjs --sem-whisper"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +17,8 @@
   "type": "commonjs",
   "devDependencies": {
     "puppeteer-core": "^25.16.0"
+  },
+  "dependencies": {
+    "googleapis": "^189.0.0"
   }
 }

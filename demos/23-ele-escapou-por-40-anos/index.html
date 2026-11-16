@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>23 · Ele escapou por 40 anos (true crime)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Oswald:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: Inter, 'Segoe UI', sans-serif; }
+	#stage { position: absolute; left: 50%; top: 50%; width: 1080px; height: 1920px; overflow: hidden; background: #05080b; transform-origin: 50% 50%; }
+	#stage > canvas { position: absolute; inset: 0; width: 1080px !important; height: 1920px !important; }
+	#ui { position: absolute; inset: 0; pointer-events: none; }
+	#case { position: absolute; left: 0; right: 0; top: 120px; text-align: center; font: 400 34px "Special Elite", monospace; letter-spacing: .08em; color: #D8CDB4; opacity: 0; pointer-events: none; text-shadow: 0 2px 8px #000; }
+	#flash { position: absolute; inset: 0; background: #fff; pointer-events: none; opacity: 0; }
+
+	/* legendas-chave (estilo fixo do canal) — centro, y 1165–1435, fora do rodapé e da faixa direita */
+	.cap { position: absolute; left: 50px; width: 880px; top: 1165px; height: 270px; display: none; align-items: center; justify-content: center; flex-wrap: wrap; align-content: center; text-align: center;
+		font-weight: 900; font-size: 96px; line-height: 1.04; letter-spacing: .02em; text-transform: uppercase; color: #FFFFFF;
+		-webkit-text-stroke: 18px #07090C; paint-order: stroke fill; filter: drop-shadow(0 9px 0 rgba(0,0,0,.55)); }
+	.cap .w { display: inline-block; white-space: pre; position: relative; will-change: transform, opacity; }
+	.cap .hl { color: #FFE3A8; }
+	.cap .k { color: #FFB02E; }
+	.cap .strike { color: #D9DCEA; }
+	.cap .strike::after { content: ''; position: absolute; left: -4%; top: 46%; height: 16px; width: calc(108% * var(--st, 0)); background: #FF8A1F; border-radius: 8px; box-shadow: 0 0 0 6px #07090C; transform: rotate(-4deg); }
+
+	/* carimbo final */
+	.stamp { position: absolute; left: 90px; width: 800px; top: 230px; height: 300px; display: none; flex-direction: column; align-items: center; justify-content: center;
+		border: 16px solid #FF6B57; border-radius: 34px; background: rgba(255,243,222,.95); color: #FF6B57; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; line-height: 1.02;
+		box-shadow: 0 12px 0 rgba(43,29,51,.35); }
+	.stamp span { font-size: 128px; white-space: nowrap; text-align: center; }
+	.stamp span:first-child { font-size: 92px; }
+
+	#hud { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center; padding: 8px 16px; background: rgba(0,0,0,.75); font: 13px 'Segoe UI', sans-serif; color: #ccc; z-index: 10; }
+	#hud button { background: #222; color: #eee; border: 1px solid #444; padding: 5px 11px; cursor: pointer; border-radius: 4px; }
+	#hud input[type=range] { flex: 1; }
+	#loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #888; font: 14px 'Segoe UI'; z-index: 20; background: #000; }
+</style>
+<script type="importmap">
+{ "imports": {
+	"three": "/three.js-master/build/three.module.js",
+	"three/addons/": "/three.js-master/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+	<div id="ui"></div>
+	<div id="flash"></div>
+	<div id="case">CASO REAL · CALIFÓRNIA · 1974–2018</div>
+</div>
+<div id="hud">
+	<button id="play">▶</button>
+	<input id="scrub" type="range" min="0" max="55.7" step="0.01" value="0">
+	<span id="tc">000.00</span>
+	<label><input id="sfx" type="checkbox" checked> SFX</label>
+	<span style="opacity:.6">Espaço (com áudio) · ←/→ · H</span>
+</div>
+<audio id="voz" src="/audio/23-ele-escapou-por-40-anos.mp3" preload="auto"></audio>
+<audio id="fx" src="/renders/23-ele-escapou-por-40-anos-sfx.wav" preload="auto"></audio>
+<div id="loading">desenhando…</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

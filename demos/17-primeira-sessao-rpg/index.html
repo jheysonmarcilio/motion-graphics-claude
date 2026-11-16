@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>17 — A primeira sessão (RPG pixel art, 9:16)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
+<style>
+	html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+	#stage { position: fixed; left: 50%; top: 50%; width: 1080px; height: 1920px; transform-origin: 0 0; background: #000; }
+	#c, #ui { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; display: block; }
+	#c { image-rendering: pixelated; }
+	#hud { position: fixed; left: 8px; bottom: 6px; opacity: .55; color: #fff; font: 12px monospace; }
+</style>
+<div id="stage"><canvas id="c"></canvas><canvas id="ui" width="1080" height="1920"></canvas></div>
+<div id="hud">ESPAÇO pausa · ←/→ ±1s · ?t=5 · ?nohud</div>
+<script type="module" src="./main.js"></script>

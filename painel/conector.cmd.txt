@@ -1,0 +1,183 @@
+@echo off
+chcp 65001 >nul
+title Estúdio — conectar este computador
+color 1F
+set "PAINEL={{PAINEL}}"
+set "TOKEN={{TOKEN}}"
+set "NOME={{NOME}}"
+set "APP=%LOCALAPPDATA%\Estudio"
+if not exist "%APP%" mkdir "%APP%"
+cls
+echo.
+echo   ==========================================================
+echo     ESTÚDIO — conectando este computador ao painel
+echo     Conta: %NOME%
+echo   ==========================================================
+echo.
+echo   Não feche esta janela. Leva de 1 a 5 minutos.
+echo.
+
+rem ── 0. Só um conector por vez: desliga o que estiver ligado antes de ligar este ──
+echo   [0/5] Desligando conector antigo (se houver)...
+powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*agente.cjs*' -or $_.CommandLine -like '*estudio-agente.cmd*' -or $_.CommandLine -like '*bandeja.ps1*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>nul
+
+rem ── 1. Pasta do projeto ──────────────────────────────────────
+set "PROJ="
+if exist "%APP%\projeto.txt" set /p PROJ=<"%APP%\projeto.txt"
+if defined PROJ if not exist "%PROJ%\" set "PROJ="
+rem Primeira vez: sempre pergunta. Qualquer pasta serve. Fica salva em %APP%\projeto.txt
+rem e só pergunta de novo se ela sumir (ou se você apagar esse arquivo para trocar).
+if not defined PROJ goto escolher
+echo   [1/5] Pasta salva: %PROJ%
+choice /c ST /t 10 /d S /n /m "         Usar esta pasta? S = sim (padrao em 10 s)   T = trocar de pasta: "
+if errorlevel 2 goto escolher
+goto projok
+:escolher
+set "PROJ="
+echo   [1/5] Na janela que vai abrir, escolha (ou crie) a pasta onde o Estúdio vai trabalhar.
+echo         Pode ser qualquer pasta: o que faltar será baixado nela. Fica salva para as próximas vezes.
+for /f "usebackq delims=" %%P in (`powershell -NoProfile -STA -Command "Add-Type -AssemblyName System.Windows.Forms; $d=New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description='Escolha a pasta onde o Estudio vai trabalhar (o que faltar sera baixado nela)'; $d.ShowNewFolderButton=$true; $p=Join-Path $env:USERPROFILE 'Documents\Claude\Motion Graphics'; if(Test-Path $p){$d.SelectedPath=$p}else{$d.SelectedPath=[Environment]::GetFolderPath('MyDocuments')}; $f=New-Object System.Windows.Forms.Form -Property @{TopMost=$true}; if($d.ShowDialog($f) -eq 'OK'){$d.SelectedPath}"`) do set "PROJ=%%P"
+if not defined PROJ goto semprojeto
+:projok
+> "%APP%\projeto.txt" echo %PROJ%
+echo   [1/5] Pasta: %PROJ%
+
+rem ── 1a. Arquivos do projeto (ferramentas, skills, estilos, agente) ────────
+rem Baixa do painel se faltar e atualiza quando houver versão nova.
+rem Pasta com .git = pasta de desenvolvimento do administrador: nunca sobrescreve.
+if exist "%PROJ%\.git" goto kitok
+set "KITSRV=" & set "KITLOC="
+del "%APP%\kit-srv.txt" >nul 2>nul
+"%SystemRoot%\System32\curl.exe" -s --fail -A "EstudioAgente/1.0" -H "x-agente: %TOKEN%" -o "%APP%\kit-srv.txt" "%PAINEL%/api/agente/kit-versao"
+if exist "%APP%\kit-srv.txt" set /p KITSRV=<"%APP%\kit-srv.txt"
+if exist "%PROJ%\.kit-versao" set /p KITLOC=<"%PROJ%\.kit-versao"
+if not defined KITSRV if exist "%PROJ%\painel\agente.cjs" goto kitok
+if not defined KITSRV goto kiterro
+if "%KITSRV%"=="%KITLOC%" if exist "%PROJ%\painel\agente.cjs" goto kitok
+echo   [1/5] Baixando os arquivos do projeto (ferramentas, skills e estilos)...
+"%SystemRoot%\System32\curl.exe" -L --fail --progress-bar -A "EstudioAgente/1.0" -H "x-agente: %TOKEN%" -o "%TEMP%\estudio-kit.zip" "%PAINEL%/api/agente/kit"
+if errorlevel 1 goto kiterro
+"%SystemRoot%\System32\tar.exe" -xf "%TEMP%\estudio-kit.zip" -C "%PROJ%"
+if errorlevel 1 goto kiterro
+del "%TEMP%\estudio-kit.zip" >nul 2>nul
+:kitok
+if not exist "%PROJ%\painel\agente.cjs" goto kiterro
+echo   [1/5] Arquivos do projeto ok
+
+rem ── 1b. three.js r187 (biblioteca 3D, ~400 MB, baixada do GitHub uma vez) ──
+if exist "%PROJ%\three.js-master\build\three.module.js" goto threeok
+echo   [1/5] Baixando a biblioteca three.js do GitHub (pode levar alguns minutos)...
+"%SystemRoot%\System32\curl.exe" -L --fail --progress-bar -o "%TEMP%\three-r187.zip" "https://github.com/mrdoob/three.js/archive/refs/tags/r187.zip"
+if errorlevel 1 goto threeerro
+echo   [1/5] Descompactando...
+if exist "%TEMP%\three-r187" rmdir /s /q "%TEMP%\three-r187"
+mkdir "%TEMP%\three-r187"
+"%SystemRoot%\System32\tar.exe" -xf "%TEMP%\three-r187.zip" -C "%TEMP%\three-r187"
+if errorlevel 1 goto threeerro
+if exist "%PROJ%\three.js-master" rmdir /s /q "%PROJ%\three.js-master"
+move "%TEMP%\three-r187\three.js-r187" "%PROJ%\three.js-master" >nul
+if errorlevel 1 robocopy "%TEMP%\three-r187\three.js-r187" "%PROJ%\three.js-master" /E /MOVE /NFL /NDL /NJH /NJS >nul
+del "%TEMP%\three-r187.zip" >nul 2>nul
+rmdir /s /q "%TEMP%\three-r187" >nul 2>nul
+if not exist "%PROJ%\three.js-master\build\three.module.js" goto threeerro
+:threeok
+echo   [1/5] three.js ok
+
+rem ── 2. Node.js ───────────────────────────────────────────────
+where node >nul 2>nul
+if errorlevel 1 (
+  echo   [2/5] Instalando o Node.js...
+  winget install -e --id OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements >nul
+  echo.
+  echo   Node.js instalado. FECHE esta janela e dê dois cliques no arquivo de novo.
+  pause & exit /b
+)
+echo   [2/5] Node.js ok
+
+rem ── 3. Programas de vídeo e voz ──────────────────────────────
+where ffmpeg >nul 2>nul
+if errorlevel 1 (
+  echo   [3/5] Instalando o ffmpeg...
+  winget install -e --id Gyan.FFmpeg --silent --accept-source-agreements --accept-package-agreements >nul
+)
+set "PY=python"
+where py >nul 2>nul && set "PY=py"
+where %PY% >nul 2>nul
+if errorlevel 1 (
+  echo   [3/5] Instalando o Python...
+  winget install -e --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements >nul
+  echo   Python instalado. FECHE esta janela e dê dois cliques no arquivo de novo.
+  pause & exit /b
+)
+%PY% -m pip install -q -U edge-tts yt-dlp >nul 2>nul
+if not exist "%PROJ%\node_modules" (
+  echo   [3/5] Preparando o projeto ^(npm install^)...
+  pushd "%PROJ%" & call npm install --silent >nul 2>nul & popd
+)
+echo   [3/5] Vídeo e voz ok
+
+rem ── 4. Claude Code ───────────────────────────────────────────
+where claude >nul 2>nul
+if errorlevel 1 (
+  echo   [4/5] Instalando o Claude Code...
+  call npm install -g @anthropic-ai/claude-code >nul 2>nul
+)
+where claude >nul 2>nul
+if errorlevel 1 (
+  echo   Não consegui instalar o Claude Code. Feche, abra de novo e tente outra vez.
+  pause & exit /b 1
+)
+rem Já logado? (conta do Claude salva no computador, ou chave de API)
+if exist "%USERPROFILE%\.claude\.credentials.json" goto claudeok
+if defined ANTHROPIC_API_KEY goto claudeok
+pushd "%PROJ%"
+call claude -p "Responda apenas: ok" >"%APP%\teste-claude.txt" 2>&1 <nul
+popd
+findstr /i /c:"ok" "%APP%\teste-claude.txt" >nul
+if not errorlevel 1 findstr /i /c:"login" /c:"invalid" /c:"api key" "%APP%\teste-claude.txt" >nul || goto claudeok
+echo.
+echo   [4/5] Falta entrar na sua conta do Claude.
+echo         Vai abrir outra janela do Claude: escolha entrar com a sua conta,
+echo         termine o login no navegador e, quando aparecer a tela do Claude,
+echo         FECHE aquela janela. Esta aqui continua sozinha.
+start "Entrar no Claude" /wait /d "%PROJ%" cmd /c claude
+:claudeok
+echo   [4/5] Claude Code ok
+
+rem ── 5. Ligar o agente agora e sempre que o computador ligar ──
+> "%APP%\estudio-agente.vbs" echo CreateObject("WScript.Shell").Run "powershell -NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File ""%PROJ%\painel\bandeja.ps1"" -Proj ""%PROJ%"" -Painel ""%PAINEL%"" -Token ""%TOKEN%"" -Log ""%APP%\agente.log""", 0, False
+copy /y "%APP%\estudio-agente.vbs" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\Estudio-Agente.vbs" >nul
+if exist "%APP%\agente.log" del "%APP%\agente.log"
+wscript "%APP%\estudio-agente.vbs"
+echo   [5/5] Agente ligado (e vai ligar sozinho quando o computador iniciar)
+echo         Ícone do Estúdio nos ícones ocultos da barra de tarefas: botão direito ^> Fechar conector.
+echo.
+echo   ==========================================================
+echo     PRONTO! Volte para o painel no navegador.
+echo     Pode fechar esta janela.
+echo   ==========================================================
+echo.
+pause
+exit /b 0
+
+:threeerro
+echo.
+echo   Não consegui baixar o three.js. Confira a internet e rode o arquivo de novo.
+echo   (ou baixe https://github.com/mrdoob/three.js/archive/refs/tags/r187.zip,
+echo    descompacte e renomeie a pasta para "three.js-master" dentro do projeto)
+pause
+exit /b 1
+
+:kiterro
+echo.
+echo   Não consegui baixar os arquivos do projeto do painel.
+echo   Confira a internet e rode o arquivo de novo. Se continuar, avise o administrador
+echo   (ele precisa publicar o kit com: node painel/publicar-ftp.cjs).
+pause
+exit /b 1
+
+:semprojeto
+echo.
+echo   Nenhuma pasta foi escolhida. Rode o arquivo de novo e escolha uma pasta.
+pause
+exit /b 1

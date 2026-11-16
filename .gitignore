@@ -26,8 +26,21 @@ tools/models/
 
 # ── Configuração local do Claude ──
 .claude/settings.local.json
-
+.env
 # ── Sistema ──
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# ── Credenciais YouTube ──
+client_secret*.json
+token.json
+
+# ── Painel de automação (dados e segredos locais) ──
+painel/config.json
+painel/dados/
+tokens/
+painel/.env
+
+# ── Material dos cursos (privado, não vai pro GitHub) ──
+midia/

@@ -45,7 +45,7 @@ const executablePath = browsers.find(fs.existsSync);
 	const vmap = bg ? ['-filter_complex', `[0:v]fps=${fps},setpts=PTS-STARTPTS[b];[b][1:v]overlay=0:0:format=auto:shortest=1,format=yuv420p[v]`, '-map', '[v]'] : ['-map', vi + ':v'];
 	const aout = audio ? ['-map', ai + ':a', '-c:a', 'aac', '-b:a', '192k', '-shortest'] : [];
 	const ff = spawn('ffmpeg', ['-y', '-loglevel', process.env.FFLOG || 'error', ...ins, ...vmap, ...aout,
-		'-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
+		'-c:v', 'libx264', '-preset', 'slow', '-b:v', '12M', '-minrate', '12M', '-maxrate', '12M', '-bufsize', '24M', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
 
 	ff.stdin.on('error', e => { console.error('\nstdin do ffmpeg: ' + e.code); process.exitCode = 1; });
 	ff.on('exit', (c, s) => { if (c) console.error('\nffmpeg saiu com código ' + c + ' ' + (s || '')); });

@@ -8,8 +8,9 @@ Vídeos para YouTube sobre mente humana e psicologia, feitos em código (HTML + 
 - `demos/NN-nome/` — cada animação: `index.html` (+ `main.js`, `lib.js`, `scenes/*.js` quando tiver várias cenas; ver `demos/01-threejs-showcase` como modelo).
 - `roteiros/NN-nome.md` — roteiro/storyboard no formato obrigatório (ver skills `roteiro-longo` / `roteiro-short`).
 - `audio/NN-nome.(wav|mp3)` — narração gravada pelo autor (quando existir).
-- `brand/identidade.md` — o que é fixo (tipografia, legenda, carimbo). `brand/linguagens.md` — cardápio de linguagens visuais com receitas three.js. `brand/historico-visual.md` — o que cada vídeo já usou. `brand/catalogo-threejs.md` — o que dá pra fazer e como pedir.
+- `brand/dominio-e-voz.md` — assunto do autor (hipnose/hipnoterapia, cursos, posições) e **como ele fala**; ler antes de escrever qualquer texto narrado. Fonte bruta: `midia/` (base de conhecimento + transcrições de 484 aulas; não reler, grande). `brand/identidade.md` — o que é fixo (tipografia, legenda, carimbo). `brand/linguagens.md` — cardápio de linguagens visuais com receitas three.js. `brand/historico-visual.md` — o que cada vídeo já usou. `brand/catalogo-threejs.md` — o que dá pra fazer e como pedir.
 - `docs/guidelines/` — manuais originais do autor: animação longo 16:9, Shorts 9:16 e roteiro de alta retenção. Fonte da verdade das regras abaixo.
+- `painel/` — Estúdio: painel multicanal (canais dark + principal, lotes com estilos escolhidos, revisão com nota, agenda, YouTube por canal): no ar em https://comunidademarcilio.com.br/motion-graphics/painel/ (versão PHP `painel/php/api.php`, publicar com `node painel/publicar-ftp.cjs`; local: `npm run painel`). Etapas, instruções e estilos iniciais em `painel/etapas.cjs`; ver `painel/LEIAME.md`. **Canais dark do painel têm voz sintética autorizada pelo autor** (`tools/tts.cjs`); quando o prompt traz o bloco CANAL de um canal dark, ignore `brand/dominio-e-voz.md`, HipnoEMDR® e `brand/historico-visual.md`.
 - `tools/serve.js` — servidor local (`node tools/serve.js` → http://localhost:5173). ES modules não rodam via file://.
 
 ## Fluxo de produção
@@ -26,6 +27,7 @@ Quando o autor mandar só um tema, começar pela análise estratégica do `rotei
 - Toda a biblioteca three.js (`examples/jsm/`) está liberada.
 
 ## Skills do projeto (`.claude/skills/`)
+- `pesquisa-roteiro` — pesquisa vídeos de sucesso no YouTube (6–12 meses, transcrição + top 10 comentários) (5 vídeos) e sugere 2 pautas inéditas por vídeo (10 no total) com título, gancho e estrutura; histórico em `roteiros/pesquisas/_sugeridas.md`.
 - `roteiro-retencao` — análise estratégica (crença errada, pergunta central, A/B-plot, títulos, thumbnails) + texto narrado com estrutura de investigação.
 - `direcao-de-arte` — bíblia visual do vídeo: linguagem, paleta, personagens, mapa de literalidade, anti-repetição.
 - `roteiro-longo` — storyboard cena a cena de vídeo longo 16:9.
