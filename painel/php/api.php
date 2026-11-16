@@ -98,6 +98,10 @@ foreach ($db['canais'] as &$c) {
 foreach ($db['jobs'] as &$jj) foreach ($IDS_ETAPAS as $k) $jj['etapas'][$k] ??= ['estado' => 'pulado', 'log' => []]; unset($jj);
 $db['testes'] ??= [];
 foreach ($db['temas'] as &$t) if (!array_key_exists('pilotoId', $t)) { $cc = null; foreach ($db['canais'] as $x) if ($x['id'] === $t['canalId']) $cc = $x; $t['pilotoId'] = $cc['pilotos'][0]['id'] ?? null; $t['usado'] ??= false; } unset($t);
+// Vídeo único: vídeo cancelado/apagado devolve o tema ao rascunho
+function devolverTema(string $jid): void { global $db; foreach ($db['temas'] as &$t) if (($t['pilotoId'] ?? null) === 'avulso' && ($t['jobId'] ?? null) === $jid) { $t['usado'] = false; unset($t['jobId'], $t['usadoEm']); } unset($t); }
+$vivos = []; foreach ($db['jobs'] as $j) if ($j['status'] !== 'cancelado') $vivos[$j['id']] = 1; // corrige os cancelados antes desta regra
+foreach ($db['temas'] as &$t) if (($t['pilotoId'] ?? null) === 'avulso' && !empty($t['usado']) && !empty($t['jobId']) && empty($vivos[$t['jobId']])) { $t['usado'] = false; unset($t['jobId'], $t['usadoEm']); } unset($t, $vivos);
 function &piloto(array &$c, ?string $pid) { foreach ($c['pilotos'] as &$p) if ($p['id'] === $pid) return $p; $n = null; return $n; }
 
 // ── buscas ──
@@ -844,13 +848,13 @@ if (preg_match('#^jobs/(\w+)(/[\w-]+)?$#', $rota, $mm)) {
 	$i = jobIdx($mm[1], $u); if ($i === null) responder(['erro' => 'não existe'], 404);
 	$j = &$db['jobs'][$i]; $sub = $mm[2] ?? '';
 	if (!$sub && $m === 'GET') { $a = etapaAtual($j); responder($j + ['base' => base($j), 'atual' => $a['id'] ?? null, 'temVideo' => !empty($j['mp4Upload']) || !empty($j['mp4Local']), 'temVoz' => !empty($j['audioUpload']) || !empty($j['audioGerado'])]); }
-	if (!$sub && $m === 'DELETE') { if ($j['mp4Upload']) @unlink(DADOS . '/uploads/' . $j['mp4Upload']); if ($j['audioUpload']) @unlink(DADOS . '/uploads/' . $j['audioUpload']); if (!empty($j['audioGerado'])) @unlink(DADOS . '/uploads/' . $j['audioGerado']); cancelarId($u['id'], $j['id']); unset($j); array_splice($db['jobs'], $i, 1); salvar(); responder(['ok' => 1]); }
+	if (!$sub && $m === 'DELETE') { if ($j['mp4Upload']) @unlink(DADOS . '/uploads/' . $j['mp4Upload']); if ($j['audioUpload']) @unlink(DADOS . '/uploads/' . $j['audioUpload']); if (!empty($j['audioGerado'])) @unlink(DADOS . '/uploads/' . $j['audioGerado']); cancelarId($u['id'], $j['id']); devolverTema($j['id']); unset($j); array_splice($db['jobs'], $i, 1); salvar(); responder(['ok' => 1]); }
 	if (!$sub && $m === 'PATCH') {
 		$b = corpo();
 		foreach (['instrucoes', 'gates', 'narracao', 'publicarEm', 'estilo'] as $k) if (array_key_exists($k, $b)) $j[$k] = $b[$k];
 		if (array_key_exists('tema', $b) && !$j['nn']) { $j['tema'] = $b['tema']; $j['slug'] = slugify($b['tema']); }
 		if (isset($b['youtube'])) { $j['youtube'] = array_merge($j['youtube'], $b['youtube']); $j['youtube']['editado'] = true; }
-		if (!empty($b['status']) && in_array($b['status'], ['ativo', 'pausado', 'cancelado'])) { $j['status'] = $b['status']; if ($b['status'] !== 'ativo') cancelarId($u['id'], $j['id']); }
+		if (!empty($b['status']) && in_array($b['status'], ['ativo', 'pausado', 'cancelado'])) { $j['status'] = $b['status']; if ($b['status'] !== 'ativo') cancelarId($u['id'], $j['id']); if ($b['status'] === 'cancelado') devolverTema($j['id']); }
 		recalcular($j); salvar(); responder(['ok' => 1]);
 	}
 	if ($sub === '/acao') {
