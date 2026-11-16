@@ -48,9 +48,12 @@ if (!isset($db['estilos'])) $db['estilos'] = $E['ESTILOS'];
 // estilos novos de etapas.json entram uma vez (apagados pelo autor não voltam); amostra (img) é preenchida se faltar
 $db['estilosSemeados'] ??= array_column($db['estilos'], 'id');
 foreach ($E['ESTILOS'] as $ei) { $achou = false;
-	foreach ($db['estilos'] as &$ex) if ($ex['id'] === $ei['id']) { $achou = true; if (empty($ex['img']) && !empty($ei['img'])) $ex['img'] = $ei['img']; } unset($ex);
+	foreach ($db['estilos'] as &$ex) if ($ex['id'] === $ei['id']) { $achou = true; if (($ei['rev'] ?? 0) > ($ex['rev'] ?? 0)) foreach (['nome', 'desc', 'guia', 'referencia', 'img', 'rev'] as $k) $ex[$k] = $ei[$k] ?? ''; } unset($ex);
 	if (!$achou && !in_array($ei['id'], $db['estilosSemeados'], true)) $db['estilos'][] = $ei;
 	if (!in_array($ei['id'], $db['estilosSemeados'], true)) $db['estilosSemeados'][] = $ei['id']; }
+foreach ($E['RETIRADOS'] ?? [] as $rid) foreach ($db['estilos'] as $k => $ex) if ($ex['id'] === $rid) {
+	$usado = false; foreach ($db['jobs'] ?? [] as $j) if (($j['estilo'] ?? null) === $rid) $usado = true;
+	if ($usado) $db['estilos'][$k]['ativo'] = false; else { array_splice($db['estilos'], $k, 1); } break; }
 // Um canal tem vários pilotos automáticos: cada um com sua temática, formato, dias, horários e fila de temas.
 function pilotoPadrao(array $b = []): array {
 	return array_merge(['id' => novoId('pl'), 'nome' => 'Piloto', 'ativo' => false, 'formato' => 'short', 'fonte' => 'pesquisa', 'palavraChave' => '', 'estilos' => [],

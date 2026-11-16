@@ -6,6 +6,7 @@
 <body><script type="module">
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { montarEstilo } from '/demos/_estilos/estilos.js';
 const W = 1280, H = 720, v = new URLSearchParams(location.search).get('v') || 'flat';
 const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setSize(W, H); r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
 const sc = new THREE.Scene();
@@ -194,6 +195,21 @@ const S = {
 		txt('FIG. 1 — CÓRTEX PRÉ-FRONTAL', 6, [-3.5, -3.6, 0], { color: '#E8F1FF', font: '700 {s}px Courier New', size: 60 });
 	},
 };
-(S[v] || S.flat)();
-r.render(sc, cam); window.__thumbPronto = true;
+// Estilos do kit demos/_estilos: a MESMA cena (pessoa pensando à noite) em cada estilo, para comparar.
+const KIT = ['anime', 'sombrio', 'hq', 'aquarela', 'papel', 'vitral', 'giz', 'whiteboard', 'neon', 'isometrico', 'silhueta', 'pixel', 'flat'];
+const LEGENDA = {
+	hq: ['<div style="position:absolute;left:46px;top:40px;background:#F2EAD3;border:5px solid #111;padding:14px 22px;font:900 34px/1.15 \'Courier New\';color:#111;transform:rotate(-1.5deg);box-shadow:8px 8px 0 #111">23:47.<br>ELA AINDA ESTAVA ACORDADA.</div>'],
+	giz: ['<div style="position:absolute;left:60px;top:40px;font:700 50px \'Segoe Print\',\'Comic Sans MS\';color:#F2EFE4;opacity:.92;text-align:left;line-height:1.15">Por que a mente<br>acelera à noite?</div>'],
+	whiteboard: ['<div style="position:absolute;left:60px;top:40px;font:700 50px \'Segoe Print\',\'Comic Sans MS\';color:#1E1E24;text-align:left;line-height:1.15">Por que a mente<br><span style="color:#D63031">acelera</span> à noite?</div>'],
+	neon: ['<div style="position:absolute;right:56px;top:40px;font:italic 900 70px \'Arial Black\';color:#05D9E8;text-shadow:0 0 18px #05D9E8,0 0 40px #FF2A6D">23:47</div>'],
+	pixel: ['<div style="position:absolute;left:40px;right:40px;bottom:34px;background:#000;border:6px solid #fff;outline:6px solid #000;padding:18px 26px;font:700 34px \'Courier New\';color:#fff;image-rendering:pixelated">LIA: Por que eu não consigo desligar?</div>'],
+};
+if (KIT.includes(v)) {
+	const px = v === 'pixel', w = px ? 320 : W, h = px ? 180 : H;
+	r.setSize(w, h, false); r.domElement.style.cssText = `width:${W}px;height:${H}px;${px ? 'image-rendering:pixelated' : ''}`;
+	montarEstilo(v, r, w, h).render();
+	if (px) { const c2 = document.createElement('canvas'); c2.width = W; c2.height = H; const g2 = c2.getContext('2d'); g2.imageSmoothingEnabled = false; g2.drawImage(r.domElement, 0, 0, W, H); r.domElement.replaceWith(c2); }
+	if (LEGENDA[v]) { document.body.style.position = 'relative'; document.body.insertAdjacentHTML('beforeend', LEGENDA[v][0]); }
+} else { (S[v] || S.flat)(); r.render(sc, cam); }
+window.__thumbPronto = true;
 </script></body></html>

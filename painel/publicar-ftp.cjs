@@ -13,7 +13,7 @@ const e = require('./etapas.cjs');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'painel-ftp-'));
 const enviar = (local, nome) => { execFileSync('curl', ['-s', '-S', '--ftp-create-dirs', '-T', local, `ftp://${host}:${porta}${destino}${nome}`, '-u', `${env.FTP_USER}:${env.FTP_PASS}`]); console.log('enviado', destino + nome); };
 try {
-	fs.writeFileSync(path.join(tmp, 'etapas.json'), JSON.stringify({ ETAPAS: e.ETAPAS, PROMPTS: e.PROMPTS, ESTILOS: e.ESTILOS_INICIAIS }));
+	fs.writeFileSync(path.join(tmp, 'etapas.json'), JSON.stringify({ ETAPAS: e.ETAPAS, PROMPTS: e.PROMPTS, ESTILOS: e.ESTILOS_INICIAIS, RETIRADOS: e.ESTILOS_RETIRADOS }));
 	for (const [local, nome] of [[path.join(__dirname, 'web/index.html'), 'index.html'], [path.join(__dirname, 'php/api.php'), 'api.php'], [path.join(tmp, 'etapas.json'), 'etapas.json'],
 		[path.join(__dirname, 'php/.htaccess'), '.htaccess'], [path.join(__dirname, 'conector.cmd.txt'), 'conector.cmd.txt']]) enviar(local, nome);
 	for (const f of fs.readdirSync(path.join(__dirname, 'web/estilos'))) if (f.endsWith('.jpg')) enviar(path.join(__dirname, 'web/estilos', f), 'estilos/' + f); // amostras dos estilos

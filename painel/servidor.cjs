@@ -4,7 +4,7 @@
 //              (cada usuário roda o agente no próprio PC: node painel/agente.cjs --painel <url> --token <token dele>)
 'use strict';
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto');
-const { ETAPAS, PROMPTS, ESTILOS_INICIAIS, blocoCanal, blocoEstilo } = require('./etapas.cjs');
+const { ETAPAS, PROMPTS, ESTILOS_INICIAIS, ESTILOS_RETIRADOS, blocoCanal, blocoEstilo } = require('./etapas.cjs');
 
 const args = process.argv.slice(2), flag = k => args.includes('--' + k), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 const DIR = __dirname, DADOS = path.resolve(opt('dados', process.env.PAINEL_DADOS || path.join(DIR, 'dados'))), UP = path.join(DADOS, 'uploads');
@@ -64,7 +64,8 @@ const canalPadrao = (b = {}) => ({
 });
 if (!db.estilos) db.estilos = ESTILOS_INICIAIS.map(e => ({ ...e }));
 db.estilosSemeados ||= db.estilos.map(e => e.id); // estilos novos entram uma vez; apagados não voltam
-for (const ei of ESTILOS_INICIAIS) { const ex = db.estilos.find(e => e.id === ei.id); if (ex) ex.img ||= ei.img; else if (!db.estilosSemeados.includes(ei.id)) db.estilos.push({ ...ei }); if (!db.estilosSemeados.includes(ei.id)) db.estilosSemeados.push(ei.id); }
+for (const ei of ESTILOS_INICIAIS) { const ex = db.estilos.find(e => e.id === ei.id); if (ex) { if ((ei.rev || 0) > (ex.rev || 0)) Object.assign(ex, { nome: ei.nome, desc: ei.desc, guia: ei.guia, referencia: ei.referencia, img: ei.img, rev: ei.rev }); } else if (!db.estilosSemeados.includes(ei.id)) db.estilos.push({ ...ei }); if (!db.estilosSemeados.includes(ei.id)) db.estilosSemeados.push(ei.id); }
+for (const id of ESTILOS_RETIRADOS) { const e = db.estilos.find(x => x.id === id); if (e) { if (db.jobs?.some(j => j.estilo === id)) e.ativo = false; else db.estilos = db.estilos.filter(x => x !== e); } }
 if (!db.canais) db.canais = [{ id: 'principal', ...canalPadrao(), nome: 'Mente & Psicologia (principal)', principal: true, narracao: 'autor', cor: '#5ee0c0',
 	gates: { roteiro: true, revisao: false, storyboard: false, animacao: true }, youtube: { ativo: false, token: 'token.json', privacidade: 'private', conexao: null } }];
 for (const c of db.canais) { c.piloto = { ...structuredClone(PILOTO), ...(c.piloto || {}) }; c.youtube.conexao ??= null; c.pesquisaTema ??= ''; }
