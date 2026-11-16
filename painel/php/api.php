@@ -162,8 +162,9 @@ function criarLote(array $b): array {
 	$ids = [];
 	for ($i = 0; $i < $n; $i++) {
 		$tema = $temas[$i] ?? ''; $detalhe = ''; $tiUsado = null;
-		if (!$tema && ($b['origem'] ?? '') !== 'audio') foreach ($db['temas'] as $ti => $t)
-			if ($t['canalId'] === $c['id'] && empty($t['usado']) && ($pid ? ($t['pilotoId'] ?? null) === $pid : true)) { $tema = $t['tema']; $detalhe = $t['detalhe'] ?? ''; $tiUsado = $ti; break; }
+		if ($tema) { foreach ($db['temas'] as $ti => $t) if ($t['canalId'] === $c['id'] && empty($t['usado']) && $t['tema'] === $tema) { $detalhe = $t['detalhe'] ?? ''; $tiUsado = $ti; break; } }
+		elseif (($b['origem'] ?? '') !== 'audio') foreach ($db['temas'] as $ti => $t)
+			if ($t['canalId'] === $c['id'] && empty($t['usado']) && ($pid ? ($t['pilotoId'] ?? null) === $pid : ($t['pilotoId'] ?? null) !== 'avulso')) { $tema = $t['tema']; $detalhe = $t['detalhe'] ?? ''; $tiUsado = $ti; break; }
 		if (!$tema && !empty($b['soDaFila'])) break;
 		$est = null;
 		if ($estilos) {
@@ -787,6 +788,12 @@ if ($rota === 'canais' && $m === 'POST') {
 	$b = corpo(); unset($b['youtube'], $b['dono'], $b['id']);
 	$c = array_merge(['id' => substr(slugify($b['nome'] ?? 'canal'), 0, 24) . '-' . bin2hex(random_bytes(2))], canalPadrao($b), ['principal' => false, 'dono' => $u['id']]);
 	$c['youtube']['token'] = "tokens/{$c['id']}.json"; $db['canais'][] = $c; salvar(); responder(canalPub($c));
+}
+// Vídeo único (testes fora do piloto): pesquisa própria, temas com pilotoId 'avulso'
+if (preg_match('#^canais/([\w-]+)/avulso/pesquisar$#', $rota, $mm) && $m === 'POST') {
+	if (!$meuCanal($mm[1])) responder([], 404); $c = &canal($mm[1]); $b = corpo();
+	$pl = ['id' => 'avulso', 'nome' => 'Vídeo único', 'palavraChave' => trim((string)($b['palavraChave'] ?? '')), 'formato' => ($b['formato'] ?? '') === 'longo' ? 'longo' : 'short'];
+	$q = pedirPesquisa($c, $pl, 'pedida manualmente'); salvar(); $q ? responder($q) : responder(['erro' => 'já existe uma pesquisa de vídeo único em andamento'], 400);
 }
 // Pilotos automáticos do canal
 if (preg_match('#^canais/([\w-]+)/pilotos(?:/([\w-]+))?(/pesquisar)?$#', $rota, $mm)) {

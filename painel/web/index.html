@@ -242,6 +242,7 @@ function paginaCanal() {
 		<div class="card kpi"><div class="ic" style="background:var(--ok-l)">📦</div><div><div class="small mut">Prontos · sendo feitos${n.voce ? ' · esperando você' : ''}</div><b style="font-size:1.3rem">${n.prontos} · ${n.fazendo}${n.voce ? ` · <span style="color:var(--warn)">${n.voce}</span>` : ''}</b></div></div>
 	</div>
 	<div class="card"><div class="row"><h3 class="sp" style="margin:0">📈 Evolução do canal</h3>${st.custo ? `<span class="small mut">Claude: US$ ${st.custo.toFixed(2)}</span>` : ''}</div>${evolucao(st)}</div>
+	<div class="card" style="margin-top:18px"><div class="row"><div class="sp"><h3 style="margin:0">🧪 Vídeo único (testes)</h3><div class="small mut">Fora do piloto: pesquise temas, escolha o estilo de cada um e gere só o que quiser testar.${filaDe(c.id, 'avulso').length ? ` · ${filaDe(c.id, 'avulso').length} tema(s) esperando` : ''}</div></div><button class="btn pri" onclick="videoUnico('${c.id}')">🧪 Vídeo único</button></div></div>
 	<div class="row" style="margin:28px 0 12px"><h2 class="sp" style="margin:0">🤖 Pilotos automáticos</h2><button class="btn pri" onclick="editarPiloto('${c.id}')">+ Adicionar piloto automático</button></div>
 	<p class="small mut" style="margin:-4px 0 14px">Cada piloto cuida de uma linha de vídeos: tema, formato, dias e horários próprios. Ex.: "Shorts de curiosidades" seg–qua 18:00 e "Vídeo longo de história" sáb 10:00.</p>
 	<div class="grid g2">${ps.map(p => cartaoPiloto(c, p)).join('') || `<div class="card empty" style="grid-column:1/-1"><div style="font-size:2.5rem">🤖</div><h2>Nenhum piloto ainda</h2><p>Crie o primeiro: diga o tema, se é Short ou vídeo longo, e quando publicar.</p><button class="btn pri xl" onclick="editarPiloto('${c.id}')">+ Adicionar piloto automático</button></div>`}</div>`;
@@ -396,6 +397,43 @@ async function criarLote(cid) {
 	const est = lerEstilos('nl'); if (!est.length) return toast('Marque pelo menos um estilo');
 	const r = await api('/lote', 'POST', { canalId: cid, pilotoId: $('#nl_p').value || null, quantidade: +$('#nl_q').value, temas: $('#nl_t').value.split('\n'), estilos: est, distribuicao: 'alternar', instrucoes: $('#nl_i').value });
 	fechar(); toast(r.ids.length + ' vídeo(s) na fila'); atualizar();
+}
+
+// ══════════ Vídeo único (testes, fora do piloto) ══════════
+const vuForm = {};
+function videoUnico(cid) {
+	const c = canalDe(cid), temas = filaDe(cid, 'avulso'), f = vuForm[cid] ||= { chave: c.pesquisaTema || c.nicho || '', formato: c.formato || 'short' };
+	const pesq = E.pesquisas.find(q => q.canalId === cid && q.pilotoId === 'avulso' && ['pendente', 'rodando'].includes(q.estado));
+	const ests = E.estilos.filter(e => e.ativo), doCanal = (c.estilos || []).filter(id => ests.some(e => e.id === id));
+	const selEst = i => `<select class="vu_est" data-i="${i}" style="width:auto;max-width:200px">${opcoes(ests.map(e => [e.id, e.nome]), doCanal.length ? doCanal[i % doCanal.length] : ests[0]?.id)}</select>`;
+	modal(`<div class="row"><h2 class="sp" style="margin:0">🧪 Vídeo único — ${esc(c.nome)}</h2><button class="btn" onclick="fechar()">✕</button></div>
+	<p class="small mut">Para testar estilos antes de ligar o piloto: nada aqui entra na agenda nem na fila dos pilotos. Cada tema vira 1 vídeo com o estilo que você escolher.</p>
+	<div class="row" style="gap:8px;align-items:end"><div class="sp"><label class="f">Palavra-chave da pesquisa</label><input type="text" id="vu_chave" value="${esc(f.chave)}" oninput="vuForm['${cid}'].chave=this.value"></div>
+		<div><label class="f">Formato</label><select id="vu_fmt" style="width:auto" onchange="vuForm['${cid}'].formato=this.value">${opcoes([['short', 'Short 9:16'], ['longo', 'Longo 16:9']], f.formato)}</select></div>
+		<button class="btn" ${pesq ? 'disabled' : ''} onclick="vuPesquisar('${cid}')">🔎 ${pesq ? 'Pesquisando…' : 'Pesquisar 10 temas'}</button></div>
+	${pesq?.log?.length ? `<details style="margin-top:8px"><summary class="small mut">acompanhar pesquisa</summary><pre class="log">${esc(pesq.log.slice(-20).join('\n'))}</pre></details>` : ''}
+	<label class="f" style="margin-top:14px">Temas (${temas.length})</label>
+	<div class="fila">${temas.map((t, i) => `<div class="tema"><span title="${t.origem === 'pesquisa' ? 'veio da pesquisa' : 'escrito por você'}">${t.origem === 'pesquisa' ? '🔎' : '✍️'}</span><div class="sp"><b>${esc(t.tema)}</b>${t.detalhe ? `<div class="small mut">${esc(t.detalhe.slice(0, 160))}</div>` : ''}</div>
+		${selEst(i)}<button class="btn pri sm" onclick="vuGerar('${cid}',${i})">🎬 Gerar</button><button class="btn sm" title="Tirar" onclick="vuTirar('${cid}',${i})">✕</button></div>`).join('') || `<div class="empty">${pesq ? 'A pesquisa está rodando no computador; os temas aparecem aqui.' : 'Nenhum tema ainda: pesquise ou escreva um abaixo.'}</div>`}</div>
+	<div class="row" style="margin-top:10px;gap:8px"><input type="text" id="vu_novo" class="sp" placeholder="Escrever um tema meu…" onkeydown="if(event.key==='Enter')vuAdd('${cid}')"><button class="btn" onclick="vuAdd('${cid}')">+ Tema</button></div>
+	<label class="f">Pedido extra para os vídeos gerados (opcional)</label><input type="text" id="vu_i" placeholder="ex.: tom mais leve">
+	<div class="row" style="margin-top:18px"><span class="small mut sp">O vídeo aparece em 🎬 Vídeos (etapas e aprovações normais).</span>${temas.length > 1 ? `<button class="btn" onclick="vuGerar('${cid}',-1)">Gerar todos</button>` : ''}<button class="btn" onclick="fechar()">Fechar</button></div>`);
+}
+async function vuSalvarTemas(cid, temas) { await api('/temas', 'PUT', { canalId: cid, pilotoId: 'avulso', temas: temas.map(t => ({ tema: t.tema })) }); await atualizar(); videoUnico(cid); }
+async function vuAdd(cid) { const v = $('#vu_novo').value.trim(); if (v) await vuSalvarTemas(cid, [...filaDe(cid, 'avulso'), { tema: v }]); }
+async function vuTirar(cid, i) { await vuSalvarTemas(cid, filaDe(cid, 'avulso').filter((_, k) => k !== i)); }
+async function vuPesquisar(cid) {
+	const r = await api(`/canais/${cid}/avulso/pesquisar`, 'POST', { palavraChave: $('#vu_chave').value.trim(), formato: $('#vu_fmt').value });
+	if (r?.erro) return toast(r.erro); toast('Pesquisa na fila — o computador vai fazer agora'); await atualizar(); videoUnico(cid);
+}
+async function vuGerar(cid, i) {
+	const temas = filaDe(cid, 'avulso'), sel = $$('.vu_est'), fmt = $('#vu_fmt').value, inst = $('#vu_i').value;
+	let n = 0;
+	for (const k of (i < 0 ? temas.map((_, x) => x) : [i])) {
+		const est = sel.find(s => +s.dataset.i === k)?.value; if (!est) { toast('Escolha um estilo'); continue; }
+		const r = await api('/lote', 'POST', { canalId: cid, quantidade: 1, temas: [temas[k].tema], estilos: [est], formato: fmt, instrucoes: inst }); n += r?.ids?.length || 0;
+	}
+	toast(n + ' vídeo(s) na fila'); await atualizar(); videoUnico(cid);
 }
 
 // ══════════ Vídeos ══════════

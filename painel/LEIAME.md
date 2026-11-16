@@ -68,3 +68,6 @@ No PC, sem servidor: `npm run painel` → http://localhost:5180 (o agente do 1º
 - Nota (0–100, relativa entre as 3): CTR 35% · % assistido 35% · fica após 30% do vídeo 20% · inscritos por mil views 10%. **Views não contam** (a 1ª semana sempre ganha em views). Fase com menos de 20 views = "poucos dados".
 - Aba **🖼️ Thumbnails**: thumbs, métricas por semana, "Ficar com esta", "Encerrar esta semana agora", cancelar.
 - Requer: canal conectado pelo painel (não `token.json`), **reconectar** o YouTube uma vez (novo escopo `yt-analytics.readonly`) e canal verificado (thumbnail personalizada).
+
+## 8. Vídeo único (testes, só versão PHP)
+Canais → canal → **🧪 Vídeo único**: pesquisa própria (palavra-chave + formato) ou temas escritos por você, com um estilo escolhido para cada tema e botão **Gerar** (ou Gerar todos). Os temas ficam com `pilotoId = "avulso"`: não entram na agenda nem na fila dos pilotos. Serve para testar estilos antes de ligar o piloto.
