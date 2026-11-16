@@ -58,7 +58,10 @@ video{width:100%;max-height:520px;background:#000;border-radius:14px}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--tx);color:#fff;padding:14px 22px;border-radius:14px;display:none;z-index:20;font-weight:600;box-shadow:0 10px 30px #0003}
 #login{max-width:420px;margin:90px auto}
 .empty{padding:32px;text-align:center;color:var(--mut)}
-.est{border-left:6px solid var(--c,#888)}.est.off{opacity:.55}
+.est{border-left:6px solid var(--c,#888)}.est img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;margin:10px 0 2px;display:block}
+.chips.img label{flex-direction:column;align-items:stretch;padding:6px;border-radius:12px;width:150px;font-size:.85rem}.chips.img img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block}.chips.img span.nm{display:flex;align-items:center;gap:6px;padding:2px 4px}
+.passos{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:10px 0 18px}.passos div{background:var(--p1);border:1.5px solid var(--p3);border-radius:12px;padding:10px 12px;font-size:.88rem}.passos b{display:block;margin-bottom:3px}
+.sug{border:1.5px solid var(--p3);border-radius:12px;padding:10px 14px;margin:8px 0}.sug p{margin:4px 0;font-size:.9rem}.est.off{opacity:.55}
 .ch{border-top:6px solid var(--c,#888)}
 body.fora header{display:none}#nl:empty{display:none}#nl{background:var(--err);color:#fff;border-radius:10px;padding:0 7px;font-size:.75rem}
 .kpi{display:flex;gap:14px;align-items:center}.kpi .ic{font-size:1.8rem;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--ac-l);flex:none}
@@ -90,7 +93,7 @@ body.fora header{display:none}#nl:empty{display:none}#nl{background:var(--err);c
 <body>
 <header>
 	<h1>🎬 <b>Estúdio</b></h1>
-	<nav id="nav"><button data-v="inicio" class="on">🏠 Início</button><button data-v="canais">📺 Canais</button><button data-v="videos">🎬 Vídeos</button><button data-v="thumbs">🖼️ Thumbnails</button><button data-v="estilos">🎨 Estilos</button><button data-v="ajustes">⚙️ Ajustes</button><button data-v="usuarios" id="nav-usuarios" style="display:none">👥 Usuários</button></nav>
+	<nav id="nav"><button data-v="inicio" class="on">🏠 Início</button><button data-v="canais">📺 Canais</button><button data-v="videos">🎬 Vídeos</button><button data-v="thumbs">🖼️ Thumbnails</button><button data-v="pesquisas">🔎 Pesquisas</button><button data-v="estilos">🎨 Estilos</button><button data-v="ajustes">⚙️ Ajustes</button><button data-v="usuarios" id="nav-usuarios" style="display:none">👥 Usuários</button></nav>
 	<div id="hdr-r"><button class="btn sm" id="sino" onclick="verAvisos()" title="Avisos">🔔 <span id="nl"></span></button><div id="ag"><span class="dot"></span><span>…</span></div></div>
 </header>
 <div id="banner">⚠️ Seu computador está desconectado — nenhum vídeo está sendo feito agora. <button class="btn sm" onclick="telaConectar(true)">Como reconectar</button></div>
@@ -156,7 +159,7 @@ function ir(v, extra) {
 	render(); scrollTo(0, 0); rota();
 }
 $$('#nav button').forEach(b => b.onclick = () => ir(b.dataset.v));
-function render() { ({ inicio, canais, canal: paginaCanal, videos, thumbs, estilos, ajustes, usuarios })[view](); }
+function render() { ({ inicio, canais, canal: paginaCanal, videos, thumbs, pesquisas, estilos, ajustes, usuarios })[view](); }
 
 // ══════════ Vídeos: classificação ══════════
 const precisa = j => j.status === 'ativo' && j.atual && (['aprovacao', 'erro'].includes(j.etapas[j.atual]) || (j.atual === 'narracao' && j.etapas.narracao === 'aguardando'));
@@ -376,7 +379,7 @@ async function salvarFicha(id, aba) {
 async function apagarCanal(id) { if (!confirm('Apagar este canal, a fila de temas e as configurações dele?')) return; await api('/canais/' + id, 'DELETE'); fechar(); ir('canais'); }
 
 // ══════════ Fazer vídeos agora (lote) ══════════
-const estilosHtml = (sel, pre) => `<div class="chips">${E.estilos.filter(e => e.ativo || sel.includes(e.id)).map(e => `<label title="${esc(e.desc)}"><input type="checkbox" class="${pre}est" value="${e.id}" ${sel.includes(e.id) ? 'checked' : ''}><span class="cdot" style="background:${e.cor}"></span>${esc(e.nome)}</label>`).join('')}</div>`;
+const estilosHtml = (sel, pre) => `<div class="chips img">${E.estilos.filter(e => e.ativo || sel.includes(e.id)).map(e => `<label title="${esc(e.desc)}"><input type="checkbox" class="${pre}est" value="${e.id}" ${sel.includes(e.id) ? 'checked' : ''}>${e.img ? `<img src="${esc(e.img)}" alt="" loading="lazy">` : ''}<span class="nm"><span class="cdot" style="background:${e.cor}"></span>${esc(e.nome)}</span></label>`).join('')}</div>`;
 const lerEstilos = pre => $$('.' + pre + 'est:checked').map(x => x.value);
 function novoLote(cid) {
 	const c = canalDe(cid), fila = E.temas.filter(t => t.canalId === cid).length;
@@ -609,12 +612,38 @@ async function acaoTeste(id, acao, n) {
 	await api('/testes/acao', 'POST', { id, acao, n }); toast('Feito'); TT = null; thumbs();
 }
 
+// ── Pesquisas: o que o piloto automático pesquisou, os comentários e a análise ──
+const ESTADO_PQ = { pendente: 'na fila', rodando: 'pesquisando', feito: 'concluída', erro: 'falhou' };
+function pesquisas() {
+	const l = E.pesquisas.filter(q => !filtroCanal || q.canalId === filtroCanal);
+	$('#app').innerHTML = `<div class="titulo">Pesquisas</div><p class="sub">Antes de criar temas, o piloto automático estuda o que já está dando certo no YouTube. Clique numa pesquisa para ver tudo o que ele viu e concluiu.</p>
+	<div class="passos"><div><b>1 · Busca</b>Procura vídeos dos últimos 12 meses sobre a palavra-chave do piloto (várias consultas).</div><div><b>2 · Filtra</b>Fica com os 5 que mais se destacaram para o tamanho do canal (views/dia e "outlier").</div><div><b>3 · Estuda</b>Lê a transcrição: promessa, gancho, estrutura e final de cada um.</div><div><b>4 · Comentários</b>Lê os 10 comentários mais curtidos: emoções, dúvidas e pedidos que ninguém respondeu.</div><div><b>5 · Sugere</b>Cria 2 temas inéditos por vídeo (10 no total), sem repetir o que o canal já fez, e põe na fila.</div></div>
+	<div class="row" style="margin-bottom:10px"><select onchange="filtroCanal=this.value;pesquisas()" style="max-width:280px">${opcoes([['', 'Todos os canais'], ...E.canais.map(c => [c.id, c.nome])], filtroCanal)}</select></div>
+	<div class="fila">${l.map(q => { const c = canalDe(q.canalId); return `<div class="tema" style="display:block;cursor:pointer" onclick="abrirPesquisa('${q.id}')"><div class="row"><span class="tag ${q.estado === 'feito' ? 'feito' : q.estado === 'erro' ? 'erro' : 'rodando'}">${ESTADO_PQ[q.estado]}</span><b class="sp">${esc(q.palavraChave || c.pesquisaTema || c.nome)}</b><span class="small mut"><span class="cdot" style="background:${c.cor}"></span>${esc(c.nome)} · ${new Date(q.criado).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span></div>
+		<div class="small mut" style="margin-top:4px">${q.videos?.length ? `📺 ${q.videos.length} vídeos analisados` : ''}${q.temas?.length ? ` · 💡 ${q.temas.length} temas criados` : ''}${q.estado === 'feito' && !q.temDocs ? ' · a análise completa chega quando o computador estiver conectado' : ''}${q.erro ? ` · ${esc(q.erro.slice(0, 120))}` : ''}</div></div>`; }).join('') || '<div class="empty">Nenhuma pesquisa ainda. Ligue um piloto com fonte "pesquisa" ou peça uma pesquisa num piloto.</div>'}</div>`;
+}
+async function abrirPesquisa(id, aba = 'resumo') {
+	const q = await api('/pesquisas/' + id), c = canalDe(q.canalId), d = q.docs || {};
+	const ytId = u => (u || '').match(/(?:v=|youtu\.be\/|shorts\/)([\w-]{11})/)?.[1];
+	modal(`<div class="small mut"><span class="cdot" style="background:${c.cor}"></span>${esc(c.nome)} · ${ESTADO_PQ[q.estado]} · ${new Date(q.criado).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}${q.custo ? ` · custo US$ ${(+q.custo).toFixed(2)}` : ''}</div>
+	<h2 style="margin:4px 0">🔎 ${esc(q.palavraChave || c.pesquisaTema || c.nome)}</h2>
+	<div class="tabs">${[['resumo', 'Resumo'], ['dossie', 'Vídeos, comentários e análise'], ['sugestoes', 'Sugestões geradas'], ['log', 'Registro']].map(([k, n]) => `<button class="${aba === k ? 'on' : ''}" onclick="abrirPesquisa('${id}','${k}')">${n}</button>`).join('')}</div>
+	${aba === 'resumo' ? `${q.videos?.length ? `<h3>📺 Vídeos de sucesso analisados</h3><div class="grid g3">${q.videos.map(v => { const y = ytId(v.url); return `<a class="card" style="padding:8px;text-decoration:none;color:inherit" href="${esc(v.url || '#')}" target="_blank">${y ? `<img src="https://i.ytimg.com/vi/${y}/mqdefault.jpg" style="width:100%;border-radius:8px" loading="lazy">` : ''}<b class="small">${esc(v.titulo)}</b><div class="small mut">${esc(v.canal || '')}${v.views ? ' · ' + Number(v.views).toLocaleString('pt-BR') + ' views' : ''}</div></a>`; }).join('')}</div>` : '<div class="empty">Sem lista de vídeos.</div>'}
+		${q.temas?.length ? `<h3>💡 Temas que entraram na fila</h3>${q.temas.map(t => `<div>• ${esc(t)}</div>`).join('')}` : ''}
+		${q.erro ? `<div class="hint" style="color:var(--err)">${esc(q.erro)}</div>` : ''}` : ''}
+	${aba === 'dossie' ? (d.dossie ? `<p class="small mut">Dossiê do pesquisador: para cada vídeo, a promessa, o gancho, a estrutura, o final e o resumo dos 10 comentários mais curtidos (o que o público sentiu e perguntou).</p><div class="doc">${md(d.dossie)}</div>` : '<div class="empty">O dossiê ainda não chegou. Ele é enviado pelo computador conectado assim que a pesquisa termina (pesquisas antigas: deixe o computador conectado por alguns segundos).</div>') : ''}
+	${aba === 'sugestoes' ? `${(q.sugestoes || []).map((t, i) => `<div class="sug"><b>${i + 1}. ${esc(t.titulo || t.tema)}</b>${t.tema ? `<p><b>Assunto:</b> ${esc(t.tema)}</p>` : ''}${t.gancho ? `<p><b>Gancho:</b> ${esc(t.gancho)}</p>` : ''}${t.desenvolvimento ? `<p><b>Desenvolvimento:</b> ${esc(t.desenvolvimento)}</p>` : ''}${t.final ? `<p><b>Final:</b> ${esc(t.final)}</p>` : ''}</div>`).join('')}
+		${d.relatorio ? `<h3>Relatório completo (por que cada sugestão)</h3><div class="doc">${md(d.relatorio)}</div>` : (!q.sugestoes?.length ? '<div class="empty">O relatório ainda não chegou do computador.</div>' : '')}` : ''}
+	${aba === 'log' ? `<div class="leit small">${(q.log || []).slice(-200).map(l => `<div>${esc(l)}</div>`).join('') || 'Sem registro.'}</div>` : ''}
+	<div class="row" style="margin-top:16px"><span class="sp"></span><button class="btn" onclick="fechar()">Fechar</button></div>`);
+}
+
 function estilos() {
 	$('#app').innerHTML = `<div class="row" style="margin-bottom:6px"><div class="titulo sp">Estilos visuais</div><button class="btn pri" onclick="editarEstilo()">+ Novo estilo</button></div>
 	<p class="sub">Cada canal escolhe quais estilos usar. Desligado = some da escolha dos canais.</p>
 	<div class="grid g3">${E.estilos.map(e => `<div class="card est ${e.ativo ? '' : 'off'}" style="--c:${e.cor}"><div class="row"><b class="sp" style="font-size:1.1rem">${esc(e.nome)}</b>
 		<label class="chave pequena"><input type="checkbox" ${e.ativo ? 'checked' : ''} onchange="api('/estilos/${e.id}','PATCH',{ativo:this.checked}).then(atualizar)"><span></span></label></div>
-		<div class="small mut" style="margin:8px 0">${esc(e.desc)}</div>
+		${e.img ? `<img src="${esc(e.img)}" alt="Amostra do estilo ${esc(e.nome)}" loading="lazy">` : ''}<div class="small mut" style="margin:8px 0">${esc(e.desc)}</div>
 		<div class="small mut">${E.jobs.filter(j => j.estilo === e.id).length} vídeos · em ${E.canais.filter(c => (c.estilos || []).includes(e.id)).length} canais</div>
 		<div class="row" style="margin-top:12px"><button class="btn sm" onclick="editarEstilo('${e.id}')">Editar</button><button class="btn sm" onclick="editarEstilo('${e.id}',true)">Duplicar</button></div></div>`).join('')}</div>`;
 }
@@ -747,7 +776,7 @@ function seguirRota(h) {
 	const [v, id, aba] = h.replace(/^#\/?/, '').split('/');
 	if (v === 'video' && id) { if (jobAberto !== id) { abaJob = aba || 'etapas'; jobAberto = id; abrirJob(id).catch(() => ir('videos')); } return true; }
 	if (v === 'canal' && id) { ir('canal', id); return true; }
-	if (['inicio', 'canais', 'videos', 'thumbs', 'estilos', 'ajustes', 'usuarios'].includes(v)) { ir(v); return true; }
+	if (['inicio', 'canais', 'videos', 'thumbs', 'pesquisas', 'estilos', 'ajustes', 'usuarios'].includes(v)) { ir(v); return true; }
 	return false;
 }
 addEventListener('hashchange', () => seguirRota(location.hash));

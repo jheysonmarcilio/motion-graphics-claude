@@ -62,6 +62,7 @@ function iniciar({ painel, token, nome = os.hostname() }) {
 		try {
 			const r = await req('POST', '/api/agente/pulso', { nome, ocupado: ocupado && { jobId: ocupado.jobId, etapa: ocupado.etapa, pesquisaId: ocupado.pesquisaId }, local, versao: 1 });
 			if (ocupado && (r.cancelar.includes(ocupado.jobId) || r.cancelar.includes(ocupado.pesquisaId))) { cancelado = true; matar(); }
+			for (const d of r.docs || []) enviarDocsPesquisa(d.id, d.relatorio);
 		} catch { }
 	}, 5000);
 
@@ -222,6 +223,13 @@ function iniciar({ painel, token, nome = os.hostname() }) {
 			fim.arquivos = coletar(base);
 		} catch (e) { fim.ok = false; fim.erro = cancelado ? 'Parado pelo autor.' : e.message; log('✖', fim.erro); }
 		return fim;
+	}
+
+	// Manda ao painel o dossiê (vídeos, comentários, análise) e o relatório de sugestões de uma pesquisa (aba Pesquisas)
+	async function enviarDocsPesquisa(id, rel) {
+		const ler = f => { try { const a = path.resolve(PROJETO, f); return a.startsWith(path.join(PROJETO, 'roteiros')) ? fs.readFileSync(a, 'utf8') : ''; } catch { return ''; } };
+		const relatorio = ler(rel), dossie = ler(rel.replace(/\.md$/, '-dossie.md'));
+		await req('POST', '/api/agente/pesquisa-docs', { pesquisaId: id, relatorio: relatorio || '(arquivo do relatório não encontrado neste computador)', dossie }).catch(() => { });
 	}
 
 	// Pesquisa de temas (skill pesquisa-roteiro) → 10 sugestões em JSON

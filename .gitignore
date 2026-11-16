@@ -20,6 +20,8 @@ docs/transcricoes/
 1/
 *.jpg
 *.jpeg
+# amostras dos estilos do painel (essas vão pro GitHub)
+!painel/web/estilos/*.jpg
 
 # ── Pesado / baixável (modelo do whisper, 466 MB) ──
 tools/models/

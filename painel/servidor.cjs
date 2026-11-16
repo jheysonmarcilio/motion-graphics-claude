@@ -63,6 +63,8 @@ const canalPadrao = (b = {}) => ({
 	youtube: { ativo: false, token: '', privacidade: 'private', conexao: null }, piloto: structuredClone(PILOTO), ...b,
 });
 if (!db.estilos) db.estilos = ESTILOS_INICIAIS.map(e => ({ ...e }));
+db.estilosSemeados ||= db.estilos.map(e => e.id); // estilos novos entram uma vez; apagados não voltam
+for (const ei of ESTILOS_INICIAIS) { const ex = db.estilos.find(e => e.id === ei.id); if (ex) ex.img ||= ei.img; else if (!db.estilosSemeados.includes(ei.id)) db.estilos.push({ ...ei }); if (!db.estilosSemeados.includes(ei.id)) db.estilosSemeados.push(ei.id); }
 if (!db.canais) db.canais = [{ id: 'principal', ...canalPadrao(), nome: 'Mente & Psicologia (principal)', principal: true, narracao: 'autor', cor: '#5ee0c0',
 	gates: { roteiro: true, revisao: false, storyboard: false, animacao: true }, youtube: { ativo: false, token: 'token.json', privacidade: 'private', conexao: null } }];
 for (const c of db.canais) { c.piloto = { ...structuredClone(PILOTO), ...(c.piloto || {}) }; c.youtube.conexao ??= null; c.pesquisaTema ??= ''; }
@@ -356,7 +358,9 @@ async function api(req, res, url) {
 			for (const j of db.jobs) if (donoJob(j) === u.id) for (const [k, s] of Object.entries(j.etapas))
 				if (s.estado === 'rodando' && !(ocup.jobId === j.id && ocup.etapa === k) && Date.now() - new Date(s.inicio) > 15000) { s.estado = 'erro'; s.erro = 'Interrompido (o agente parou ou reiniciou).'; s.fim = agora(); }
 			for (const q of db.pesquisas) if (q.estado === 'rodando' && canal(q.canalId)?.dono === u.id && ocup.pesquisaId !== q.id && Date.now() - new Date(q.inicio) > 15000) { q.estado = 'erro'; q.erro = 'Interrompida (o agente parou).'; }
-			const c = [...(cancelar[u.id] || [])]; cancelar[u.id] = new Set(); return json(res, { cancelar: c });
+			const c = [...(cancelar[u.id] || [])]; cancelar[u.id] = new Set();
+			const docs = db.pesquisas.filter(q => q.estado === 'feito' && q.relatorio && !q.docs && canal(q.canalId)?.dono === u.id).slice(-3).map(q => ({ id: q.id, relatorio: q.relatorio }));
+			return json(res, { cancelar: c, docs });
 		}
 		if (p === '/api/agente/pegar') {
 			(agentes[u.id] ||= {}).visto = Date.now();
@@ -375,6 +379,10 @@ async function api(req, res, url) {
 			alvo.log.push(...b.linhas); if (alvo.log.length > 500) alvo.log.splice(0, alvo.log.length - 500);
 			salvar(); return json(res, { ok: 1 });
 		}
+		if (p === '/api/agente/pesquisa-docs') { // dossiê (vídeos, comentários, análise) + relatório de sugestões, lidos do computador
+			const b = await corpo(req, 2e6), q = db.pesquisas.find(x => x.id === b.pesquisaId && canal(x.canalId)?.dono === u.id); if (!q) return json(res, {}, 404);
+			q.docs = { dossie: String(b.dossie || '').slice(0, 80000), relatorio: String(b.relatorio || '').slice(0, 80000) }; salvar(); return json(res, { ok: 1 });
+		}
 		if (p === '/api/agente/fim-pesquisa') {
 			const b = await corpo(req), q = db.pesquisas.find(x => x.id === b.pesquisaId && canal(x.canalId)?.dono === u.id); if (!q) return json(res, {}, 404);
 			const c = canal(q.canalId); q.fim = agora(); q.custo = b.custo || 0; q.relatorio = b.relatorio || '';
@@ -382,7 +390,8 @@ async function api(req, res, url) {
 			else {
 				const novos = (b.temas || []).filter(t => t && (t.titulo || t.tema)).map(t => ({ canalId: c.id, formato: q.formato, origem: 'pesquisa', pesquisaId: q.id,
 					tema: (t.titulo || t.tema).trim(), detalhe: [t.tema && `Assunto: ${t.tema}`, t.gancho && `Gancho: ${t.gancho}`, t.desenvolvimento && `Desenvolvimento: ${t.desenvolvimento}`, t.final && `Final: ${t.final}`].filter(Boolean).join(' | ') }));
-				db.temas.push(...novos); q.estado = 'feito'; q.temas = novos.map(t => t.tema);
+				db.temas.push(...novos); q.estado = 'feito'; q.temas = novos.map(t => t.tema); q.sugestoes = (b.temas || []).slice(0, 12);
+				q.videos = (b.videos || []).slice(0, 10).map(v => ({ titulo: String(v.titulo || '').slice(0, 200), canal: String(v.canal || '').slice(0, 100), url: /^https:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(v.url || '') ? v.url : '', views: v.views ?? null }));
 				avisar(u.id, `Pesquisa concluída para ${c.nome}: ${novos.length} temas novos entraram na fila.`, { canalId: c.id });
 			}
 			salvar(); return json(res, { ok: 1 });
@@ -478,7 +487,7 @@ async function api(req, res, url) {
 		const est = meusJobs.filter(j => j.status === 'ativo' && etapaAtual(j)?.id === 'publicar' && !j.publicarEm);
 		const avisos = db.avisos.filter(a => a.userId === u.id).slice(-40).reverse();
 		return json(res, { usuario: pubUsuario(u), agente: agenteDe(u), jobs: meusJobs.map(resumo).reverse(), regras: db.regras.filter(r => ids.has(r.canalId)), temas: db.temas.filter(t => ids.has(t.canalId)),
-			pesquisas: db.pesquisas.filter(q => ids.has(q.canalId)).slice(-30).reverse().map(q => ({ ...q, log: q.log.slice(-60) })),
+			pesquisas: db.pesquisas.filter(q => ids.has(q.canalId)).slice(-30).reverse().map(({ docs, ...q }) => ({ ...q, temDocs: !!docs, log: q.log.slice(-60) })),
 			proximas: proximasExecucoes(u), canais: meusCanais(u).map(canalPub), estilos: db.estilos, agora: horaLocal(), avisos, naoLidos: avisos.filter(a => !a.lido).length,
 			estoque: Object.fromEntries(meusCanais(u).map(c => [c.id, est.filter(j => j.canalId === c.id).length])) });
 	}
@@ -558,6 +567,7 @@ async function api(req, res, url) {
 		}
 	}
 	const mq = p.match(/^\/api\/pesquisas\/(\w+)$/);
+	if (mq && m === 'GET') { const q = db.pesquisas.find(x => x.id === mq[1] && meuCanal(x.canalId)); return q ? json(res, q) : json(res, {}, 404); }
 	if (mq && m === 'DELETE') { const q = db.pesquisas.find(x => x.id === mq[1] && meuCanal(x.canalId)); if (!q) return json(res, {}, 404); if (q.estado === 'rodando') (cancelar[u.id] ||= new Set()).add(q.id); db.pesquisas = db.pesquisas.filter(x => x !== q); salvar(); return json(res, { ok: 1 }); }
 
 	// Estilos (compartilhados entre usuários)

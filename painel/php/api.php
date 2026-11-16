@@ -45,6 +45,12 @@ function assinar(string $s): string { global $cfg; return b64u(hash_hmac('sha256
 
 // ── estilos e canal padrão ──
 if (!isset($db['estilos'])) $db['estilos'] = $E['ESTILOS'];
+// estilos novos de etapas.json entram uma vez (apagados pelo autor não voltam); amostra (img) é preenchida se faltar
+$db['estilosSemeados'] ??= array_column($db['estilos'], 'id');
+foreach ($E['ESTILOS'] as $ei) { $achou = false;
+	foreach ($db['estilos'] as &$ex) if ($ex['id'] === $ei['id']) { $achou = true; if (empty($ex['img']) && !empty($ei['img'])) $ex['img'] = $ei['img']; } unset($ex);
+	if (!$achou && !in_array($ei['id'], $db['estilosSemeados'], true)) $db['estilos'][] = $ei;
+	if (!in_array($ei['id'], $db['estilosSemeados'], true)) $db['estilosSemeados'][] = $ei['id']; }
 // Um canal tem vários pilotos automáticos: cada um com sua temática, formato, dias, horários e fila de temas.
 function pilotoPadrao(array $b = []): array {
 	return array_merge(['id' => novoId('pl'), 'nome' => 'Piloto', 'ativo' => false, 'formato' => 'short', 'fonte' => 'pesquisa', 'palavraChave' => '', 'estilos' => [],
@@ -526,7 +532,9 @@ if (str_starts_with($rota, 'agente/')) {
 		$oc = $b['ocupado'] ?? []; $now = microtime(true) * 1000;
 		foreach ($db['jobs'] as &$j) if (donoJob($j) === $u['id']) foreach ($j['etapas'] as $k => &$s) if ($s['estado'] === 'rodando' && !(($oc['jobId'] ?? '') === $j['id'] && ($oc['etapa'] ?? '') === $k) && $now - ms($s['inicio']) > 15000) { $s['estado'] = 'erro'; $s['erro'] = 'Interrompido (o agente parou ou reiniciou).'; $s['fim'] = agora(); } unset($j, $s);
 		foreach ($db['pesquisas'] as &$q) { $c = &canal($q['canalId']); if ($q['estado'] === 'rodando' && ($c['dono'] ?? '') === $u['id'] && ($oc['pesquisaId'] ?? '') !== $q['id'] && $now - ms($q['inicio']) > 15000) { $q['estado'] = 'erro'; $q['erro'] = 'Interrompida (o agente parou).'; } unset($c); } unset($q);
-		$canc = $db['cancelar'][$u['id']] ?? []; $db['cancelar'][$u['id']] = []; salvar(); responder(['cancelar' => array_values($canc)]);
+		$canc = $db['cancelar'][$u['id']] ?? []; $db['cancelar'][$u['id']] = []; salvar();
+		$docs = []; foreach ($db['pesquisas'] as $q) { $c = canal($q['canalId']); if ($q['estado'] === 'feito' && !empty($q['relatorio']) && !isset($q['docs']) && ($c['dono'] ?? '') === $u['id']) $docs[] = ['id' => $q['id'], 'relatorio' => $q['relatorio']]; }
+		responder(['cancelar' => array_values($canc), 'docs' => array_slice($docs, -3)]);
 	}
 	if ($sub === 'pegar') {
 		$db['agentes'][$u['id']]['visto'] = microtime(true) * 1000; salvar();
@@ -551,6 +559,12 @@ if (str_starts_with($rota, 'agente/')) {
 		else { $i = jobIdx($b['jobId'] ?? null, $u); if ($i === null) responder([], 404); $s = &$db['jobs'][$i]['etapas'][$b['etapa']]; $s['log'] = array_slice(array_merge($s['log'], $b['linhas']), -500); }
 		salvar(); responder(['ok' => 1]);
 	}
+	if ($sub === 'pesquisa-docs') { // dossiê (vídeos, comentários, análise) + relatório de sugestões, lidos do computador
+		$b = corpo();
+		foreach ($db['pesquisas'] as &$q) if ($q['id'] === ($b['pesquisaId'] ?? '')) { $c = canal($q['canalId']); if (($c['dono'] ?? '') !== $u['id']) break;
+			$q['docs'] = ['dossie' => mb_substr((string)($b['dossie'] ?? ''), 0, 80000), 'relatorio' => mb_substr((string)($b['relatorio'] ?? ''), 0, 80000)]; unset($q); salvar(); responder(['ok' => 1]); }
+		unset($q); responder([], 404);
+	}
 	if ($sub === 'fim-pesquisa') {
 		$b = corpo(); $qi = null; foreach ($db['pesquisas'] as $k => $q) if ($q['id'] === ($b['pesquisaId'] ?? '')) $qi = $k;
 		if ($qi === null) responder([], 404);
@@ -562,7 +576,7 @@ if (str_starts_with($rota, 'agente/')) {
 			foreach ($b['temas'] ?? [] as $t) { $tit = trim($t['titulo'] ?? $t['tema'] ?? ''); if (!$tit) continue;
 				$det = implode(' | ', array_filter([!empty($t['tema']) ? "Assunto: {$t['tema']}" : '', !empty($t['gancho']) ? "Gancho: {$t['gancho']}" : '', !empty($t['desenvolvimento']) ? "Desenvolvimento: {$t['desenvolvimento']}" : '', !empty($t['final']) ? "Final: {$t['final']}" : '']));
 				$novos[] = ['canalId' => $c['id'], 'pilotoId' => $q['pilotoId'] ?? null, 'usado' => false, 'criado' => agora(), 'formato' => $q['formato'] ?? null, 'origem' => 'pesquisa', 'pesquisaId' => $q['id'], 'tema' => $tit, 'detalhe' => $det]; }
-			array_push($db['temas'], ...$novos); $q['estado'] = 'feito'; $q['temas'] = array_column($novos, 'tema');
+			array_push($db['temas'], ...$novos); $q['estado'] = 'feito'; $q['temas'] = array_column($novos, 'tema'); $q['sugestoes'] = array_slice((array)($b['temas'] ?? []), 0, 12);
 			$q['videos'] = array_values(array_map(fn($v) => ['titulo' => mb_substr((string)($v['titulo'] ?? ''), 0, 200), 'canal' => mb_substr((string)($v['canal'] ?? ''), 0, 100), 'url' => preg_match('#^https://(www.)?(youtube.com|youtu.be)/#', (string)($v['url'] ?? '')) ? $v['url'] : '', 'views' => $v['views'] ?? null], array_slice((array)($b['videos'] ?? []), 0, 10)));
 			avisar($u['id'], "Pesquisa concluída para {$c['nome']}: " . count($novos) . ' temas novos entraram na fila.', ['canalId' => $c['id']]);
 		}
@@ -679,7 +693,7 @@ if ($rota === 'estado') {
 	foreach ($jobs as $j) { $e = etapaAtual($j); if ($j['status'] === 'ativo' && $e && $e['id'] === 'publicar' && !$j['publicarEm']) $estoque[$j['canalId']]++; }
 	$av = array_reverse(array_slice(array_values(array_filter($db['avisos'], fn($a) => $a['userId'] === $u['id'])), -40));
 	$pesq = array_reverse(array_slice(array_values(array_filter($db['pesquisas'], fn($q) => in_array($q['canalId'], $meus, true))), -60));
-	foreach ($pesq as &$q) $q['log'] = array_slice($q['log'], -60); unset($q);
+	foreach ($pesq as &$q) { $q['log'] = array_slice($q['log'], -60); $q['temDocs'] = isset($q['docs']); unset($q['docs']); } unset($q);
 	responder(['usuario' => pubUsuario($u), 'agente' => agenteDe($u), 'jobs' => array_map('resumo', array_reverse($jobs)),
 		'regras' => array_values(array_filter($db['regras'], fn($r) => in_array($r['canalId'], $meus, true))), 'temas' => array_values(array_filter($db['temas'], fn($t) => in_array($t['canalId'], $meus, true) && empty($t['usado']))), 'stats' => estatisticas($meus),
 		'pesquisas' => $pesq, 'proximas' => proximasExecucoes($u), 'canais' => array_map('canalPub', meusCanais($u)), 'estilos' => $db['estilos'], 'agora' => horaLocal(),
@@ -797,6 +811,10 @@ if (preg_match('#^canais/([\w-]+)$#', $rota, $mm)) {
 		salvar(); responder(['ok' => 1]);
 	}
 }
+if (preg_match('#^pesquisas/(\w+)$#', $rota, $mm) && $m === 'GET') {
+	foreach ($db['pesquisas'] as $q) if ($q['id'] === $mm[1] && $meuCanal($q['canalId'])) responder($q);
+	responder([], 404);
+}
 if (preg_match('#^pesquisas/(\w+)$#', $rota, $mm) && $m === 'DELETE') {
 	foreach ($db['pesquisas'] as $k => $q) if ($q['id'] === $mm[1] && $meuCanal($q['canalId'])) { if ($q['estado'] === 'rodando') cancelarId($u['id'], $q['id']); array_splice($db['pesquisas'], $k, 1); salvar(); responder(['ok' => 1]); }
 	responder([], 404);
@@ -868,7 +886,7 @@ if ($rota === 'historico') { // temas já usados + pesquisas de um piloto (ou do
 	$cid = $_GET['canal'] ?? ''; $pid = $_GET['piloto'] ?? null; if (!$meuCanal($cid)) responder([], 404);
 	$doAlvo = fn($x) => $x['canalId'] === $cid && (!$pid || ($x['pilotoId'] ?? null) === $pid);
 	$usados = array_reverse(array_values(array_filter($db['temas'], fn($t) => $doAlvo($t) && !empty($t['usado']))));
-	$pesq = array_reverse(array_values(array_map(fn($q) => array_diff_key($q, ['log' => 1]), array_filter($db['pesquisas'], $doAlvo))));
+	$pesq = array_reverse(array_values(array_map(fn($q) => array_diff_key($q, ['log' => 1, 'docs' => 1]), array_filter($db['pesquisas'], $doAlvo))));
 	responder(['usados' => array_slice($usados, 0, 300), 'pesquisas' => array_slice($pesq, 0, 100)]);
 }
 if ($rota === 'temas' && $m === 'PUT') {
