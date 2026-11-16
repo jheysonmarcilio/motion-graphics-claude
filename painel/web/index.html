@@ -196,6 +196,7 @@ function inicio() {
 		<div class="card kpi clic" onclick="ir('videos')"><div class="ic">🎬</div><div><div class="small mut">Sendo feitos</div><div class="big">${fazendo}</div></div></div>
 		<div class="card kpi clic" onclick="ir('videos')"><div class="ic" style="background:var(--ok-l)">📦</div><div><div class="small mut">Prontos${pub ? ' · próximo envio' : ''}</div><b style="font-size:1.3rem">${prontos}${pub ? ' · ' + pub.quando : ''}</b></div></div>
 	</div>
+	${vuPendentes().length ? `<div class="card" style="margin-top:20px"><h3>🧪 Vídeo único — rascunhos</h3>${vuPendentes().map(x => `<div class="row" style="margin-top:8px"><span class="cdot" style="background:${x.c.cor}"></span><span class="sp"><b>${esc(x.c.nome)}</b> · ${x.pesq ? '🔎 pesquisando temas…' : `✅ ${x.n} tema(s) prontos para escolher o estilo`}</span><button class="btn pri sm" onclick="videoUnico('${x.c.id}')">Continuar</button></div>`).join('')}</div>` : ''}
 	${prec.length ? `<div class="card" style="margin-top:20px;border:2px solid #f8dcae"><h3>✋ Precisa de você</h3><div class="grid g2">${prec.map(j => cartaoVideo(j, true)).join('')}</div></div>` : ''}
 	<div class="row" style="margin:32px 0 14px"><h2 class="sp" style="margin:0">Seus canais</h2><button class="btn pri" onclick="novoCanal()">+ Novo canal</button></div>
 	<div class="grid g2">${E.canais.map(cartaoCanal).join('') || vazioCanais()}</div>`;
@@ -401,28 +402,35 @@ async function criarLote(cid) {
 
 // ══════════ Vídeo único (testes, fora do piloto) ══════════
 const vuForm = {};
+const vuRascunho = cid => vuForm[cid] ||= { chave: canalDe(cid).pesquisaTema || canalDe(cid).nicho || '', formato: canalDe(cid).formato || 'short', instrucoes: '', estilos: {}, ...(canalDe(cid).rascunhoUnico || {}) };
+let vuT = 0;
+function vuSalvar(cid, ja) { clearTimeout(vuT); const f = () => api('/canais/' + cid, 'PATCH', { rascunhoUnico: vuForm[cid] }).catch(() => {}); return ja ? f() : (vuT = setTimeout(f, 600)); }
+function vuEst(cid, tema, v) { vuRascunho(cid).estilos[tema] = v; vuSalvar(cid); }
+// rascunhos com pesquisa rodando ou temas esperando (aparecem no Início)
+const vuPendentes = () => E.canais.map(c => ({ c, n: filaDe(c.id, 'avulso').length, pesq: E.pesquisas.find(q => q.canalId === c.id && q.pilotoId === 'avulso' && ['pendente', 'rodando'].includes(q.estado)) })).filter(x => x.n || x.pesq);
 function videoUnico(cid) {
-	const c = canalDe(cid), temas = filaDe(cid, 'avulso'), f = vuForm[cid] ||= { chave: c.pesquisaTema || c.nicho || '', formato: c.formato || 'short' };
+	const c = canalDe(cid), temas = filaDe(cid, 'avulso'), f = vuRascunho(cid);
 	const pesq = E.pesquisas.find(q => q.canalId === cid && q.pilotoId === 'avulso' && ['pendente', 'rodando'].includes(q.estado));
 	const ests = E.estilos.filter(e => e.ativo), doCanal = (c.estilos || []).filter(id => ests.some(e => e.id === id));
-	const selEst = i => `<select class="vu_est" data-i="${i}" style="width:auto;max-width:200px">${opcoes(ests.map(e => [e.id, e.nome]), doCanal.length ? doCanal[i % doCanal.length] : ests[0]?.id)}</select>`;
+	const selEst = i => `<select class="vu_est" data-i="${i}" style="width:auto;max-width:200px" onchange="vuEst('${cid}',${esc(JSON.stringify(temas[i].tema))},this.value)">${opcoes(ests.map(e => [e.id, e.nome]), ests.some(e => e.id === f.estilos[temas[i].tema]) ? f.estilos[temas[i].tema] : doCanal.length ? doCanal[i % doCanal.length] : ests[0]?.id)}</select>`;
 	modal(`<div class="row"><h2 class="sp" style="margin:0">🧪 Vídeo único — ${esc(c.nome)}</h2><button class="btn" onclick="fechar()">✕</button></div>
-	<p class="small mut">Para testar estilos antes de ligar o piloto: nada aqui entra na agenda nem na fila dos pilotos. Cada tema vira 1 vídeo com o estilo que você escolher.</p>
-	<div class="row" style="gap:8px;align-items:end"><div class="sp"><label class="f">Palavra-chave da pesquisa</label><input type="text" id="vu_chave" value="${esc(f.chave)}" oninput="vuForm['${cid}'].chave=this.value"></div>
-		<div><label class="f">Formato</label><select id="vu_fmt" style="width:auto" onchange="vuForm['${cid}'].formato=this.value">${opcoes([['short', 'Short 9:16'], ['longo', 'Longo 16:9']], f.formato)}</select></div>
+	<p class="small mut">Para testar estilos antes de ligar o piloto: nada aqui entra na agenda nem na fila dos pilotos. Cada tema vira 1 vídeo com o estilo que você escolher. 💾 Fica salvo como rascunho: pode fechar e voltar depois (a pesquisa continua no computador).</p>
+	<div class="row" style="gap:8px;align-items:end"><div class="sp"><label class="f">Palavra-chave da pesquisa</label><input type="text" id="vu_chave" value="${esc(f.chave)}" oninput="vuForm['${cid}'].chave=this.value;vuSalvar('${cid}')"></div>
+		<div><label class="f">Formato</label><select id="vu_fmt" style="width:auto" onchange="vuForm['${cid}'].formato=this.value;vuSalvar('${cid}')">${opcoes([['short', 'Short 9:16'], ['longo', 'Longo 16:9']], f.formato)}</select></div>
 		<button class="btn" ${pesq ? 'disabled' : ''} onclick="vuPesquisar('${cid}')">🔎 ${pesq ? 'Pesquisando…' : 'Pesquisar 10 temas'}</button></div>
 	${pesq?.log?.length ? `<details style="margin-top:8px"><summary class="small mut">acompanhar pesquisa</summary><pre class="log">${esc(pesq.log.slice(-20).join('\n'))}</pre></details>` : ''}
 	<label class="f" style="margin-top:14px">Temas (${temas.length})</label>
 	<div class="fila">${temas.map((t, i) => `<div class="tema"><span title="${t.origem === 'pesquisa' ? 'veio da pesquisa' : 'escrito por você'}">${t.origem === 'pesquisa' ? '🔎' : '✍️'}</span><div class="sp"><b>${esc(t.tema)}</b>${t.detalhe ? `<div class="small mut">${esc(t.detalhe.slice(0, 160))}</div>` : ''}</div>
 		${selEst(i)}<button class="btn pri sm" onclick="vuGerar('${cid}',${i})">🎬 Gerar</button><button class="btn sm" title="Tirar" onclick="vuTirar('${cid}',${i})">✕</button></div>`).join('') || `<div class="empty">${pesq ? 'A pesquisa está rodando no computador; os temas aparecem aqui.' : 'Nenhum tema ainda: pesquise ou escreva um abaixo.'}</div>`}</div>
 	<div class="row" style="margin-top:10px;gap:8px"><input type="text" id="vu_novo" class="sp" placeholder="Escrever um tema meu…" onkeydown="if(event.key==='Enter')vuAdd('${cid}')"><button class="btn" onclick="vuAdd('${cid}')">+ Tema</button></div>
-	<label class="f">Pedido extra para os vídeos gerados (opcional)</label><input type="text" id="vu_i" placeholder="ex.: tom mais leve">
+	<label class="f">Pedido extra para os vídeos gerados (opcional)</label><input type="text" id="vu_i" placeholder="ex.: tom mais leve" value="${esc(f.instrucoes || '')}" oninput="vuForm['${cid}'].instrucoes=this.value;vuSalvar('${cid}')">
 	<div class="row" style="margin-top:18px"><span class="small mut sp">O vídeo aparece em 🎬 Vídeos (etapas e aprovações normais).</span>${temas.length > 1 ? `<button class="btn" onclick="vuGerar('${cid}',-1)">Gerar todos</button>` : ''}<button class="btn" onclick="fechar()">Fechar</button></div>`);
 }
 async function vuSalvarTemas(cid, temas) { await api('/temas', 'PUT', { canalId: cid, pilotoId: 'avulso', temas: temas.map(t => ({ tema: t.tema })) }); await atualizar(); videoUnico(cid); }
 async function vuAdd(cid) { const v = $('#vu_novo').value.trim(); if (v) await vuSalvarTemas(cid, [...filaDe(cid, 'avulso'), { tema: v }]); }
 async function vuTirar(cid, i) { await vuSalvarTemas(cid, filaDe(cid, 'avulso').filter((_, k) => k !== i)); }
 async function vuPesquisar(cid) {
+	await vuSalvar(cid, true);
 	const r = await api(`/canais/${cid}/avulso/pesquisar`, 'POST', { palavraChave: $('#vu_chave').value.trim(), formato: $('#vu_fmt').value });
 	if (r?.erro) return toast(r.erro); toast('Pesquisa na fila — o computador vai fazer agora'); await atualizar(); videoUnico(cid);
 }

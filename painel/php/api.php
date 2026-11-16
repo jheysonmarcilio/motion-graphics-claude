@@ -582,7 +582,7 @@ if (str_starts_with($rota, 'agente/')) {
 				$novos[] = ['canalId' => $c['id'], 'pilotoId' => $q['pilotoId'] ?? null, 'usado' => false, 'criado' => agora(), 'formato' => $q['formato'] ?? null, 'origem' => 'pesquisa', 'pesquisaId' => $q['id'], 'tema' => $tit, 'detalhe' => $det]; }
 			array_push($db['temas'], ...$novos); $q['estado'] = 'feito'; $q['temas'] = array_column($novos, 'tema'); $q['sugestoes'] = array_slice((array)($b['temas'] ?? []), 0, 12);
 			$q['videos'] = array_values(array_map(fn($v) => ['titulo' => mb_substr((string)($v['titulo'] ?? ''), 0, 200), 'canal' => mb_substr((string)($v['canal'] ?? ''), 0, 100), 'url' => preg_match('#^https://(www.)?(youtube.com|youtu.be)/#', (string)($v['url'] ?? '')) ? $v['url'] : '', 'views' => $v['views'] ?? null], array_slice((array)($b['videos'] ?? []), 0, 10)));
-			avisar($u['id'], "Pesquisa concluída para {$c['nome']}: " . count($novos) . ' temas novos entraram na fila.', ['canalId' => $c['id']]);
+			avisar($u['id'], "Pesquisa concluída para {$c['nome']}: " . count($novos) . (($q['pilotoId'] ?? null) === 'avulso' ? ' temas prontos no rascunho de Vídeo único (Início → Continuar).' : ' temas novos entraram na fila.'), ['canalId' => $c['id']]);
 		}
 		salvar(); responder(['ok' => 1]);
 	}
