@@ -141,8 +141,8 @@ function criarJob(array $d): string {
 	if ($formato !== 'longo' && isset($etapas['thumbs'])) $etapas['thumbs']['estado'] = 'pulado';
 	if ($audio) foreach (['tema', 'roteiro', 'revisao'] as $k) $etapas[$k]['estado'] = 'pulado';
 	$j = ['id' => novoId('v'), 'criado' => agora(), 'status' => 'ativo', 'regraId' => $d['regraId'] ?? null, 'loteId' => $d['loteId'] ?? null, 'canalId' => $c['id'], 'pilotoId' => $d['pilotoId'] ?? null, 'estilo' => $d['estilo'] ?? null,
-		'tema' => $tema, 'slug' => $tema ? slugify($tema) : '', 'nn' => null, 'formato' => $formato, 'origem' => $audio ? 'audio' : 'tema', 'narracao' => $audio ? 'autor' : $c['narracao'],
-		'gates' => array_merge((array)$c['gates'], (array)($d['gates'] ?? [])),
+		'tema' => $tema, 'slug' => $tema ? slugify($tema) : '', 'nn' => null, 'formato' => $formato, 'origem' => $audio ? 'audio' : 'tema', 'narracao' => $audio ? 'autor' : (!empty($d['auto']) ? 'tts' : $c['narracao']),
+		'gates' => !empty($d['auto']) ? array_map(fn() => false, (array)$c['gates']) : array_merge((array)$c['gates'], (array)($d['gates'] ?? [])),
 		'instrucoes' => implode("\n", array_filter([$d['instrucoes'] ?? '', !empty($d['detalhe']) ? 'Sugestão da pesquisa (siga este ângulo): ' . $d['detalhe'] : ''])),
 		'youtube' => ['titulo' => '', 'descricao' => '', 'tags' => [], 'privacidade' => ($d['privacidade'] ?? '') ?: $c['youtube']['privacidade'], 'editado' => false, 'url' => ''],
 		'publicarEm' => $d['publicarEm'] ?? null, 'audioUpload' => null, 'mp4Upload' => null, 'mp4Local' => null, 'thumbs' => [], 'demo' => null, 'custo' => 0, 'duracao' => null, 'etapas' => $etapas, 'arquivos' => new stdClass];

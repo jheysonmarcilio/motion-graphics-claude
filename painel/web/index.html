@@ -414,7 +414,7 @@ function videoUnico(cid) {
 	const ests = E.estilos.filter(e => e.ativo), doCanal = (c.estilos || []).filter(id => ests.some(e => e.id === id));
 	const selEst = i => `<select class="vu_est" data-i="${i}" style="width:auto;max-width:200px" onchange="vuEst('${cid}',${esc(JSON.stringify(temas[i].tema))},this.value)">${opcoes(ests.map(e => [e.id, e.nome]), ests.some(e => e.id === f.estilos[temas[i].tema]) ? f.estilos[temas[i].tema] : doCanal.length ? doCanal[i % doCanal.length] : ests[0]?.id)}</select>`;
 	modal(`<div class="row"><h2 class="sp" style="margin:0">🧪 Vídeo único — ${esc(c.nome)}</h2><button class="btn" onclick="fechar()">✕</button></div>
-	<p class="small mut">Para testar estilos antes de ligar o piloto: nada aqui entra na agenda nem na fila dos pilotos. Cada tema vira 1 vídeo com o estilo que você escolher. 💾 Fica salvo como rascunho: pode fechar e voltar depois (a pesquisa continua no computador).</p>
+	<p class="small mut">Para testar estilos antes de ligar o piloto: nada aqui entra na agenda nem na fila dos pilotos. Cada tema vira 1 vídeo com o estilo que você escolher, 100% automático (voz sintética, sem pedir aprovação). 💾 Fica salvo como rascunho: pode fechar e voltar depois (a pesquisa continua no computador).</p>
 	<div class="row" style="gap:8px;align-items:end"><div class="sp"><label class="f">Palavra-chave da pesquisa</label><input type="text" id="vu_chave" value="${esc(f.chave)}" oninput="vuForm['${cid}'].chave=this.value;vuSalvar('${cid}')"></div>
 		<div><label class="f">Formato</label><select id="vu_fmt" style="width:auto" onchange="vuForm['${cid}'].formato=this.value;vuSalvar('${cid}')">${opcoes([['short', 'Short 9:16'], ['longo', 'Longo 16:9']], f.formato)}</select></div>
 		<button class="btn" ${pesq ? 'disabled' : ''} onclick="vuPesquisar('${cid}')">🔎 ${pesq ? 'Pesquisando…' : 'Pesquisar 10 temas'}</button></div>
@@ -439,7 +439,7 @@ async function vuGerar(cid, i) {
 	let n = 0;
 	for (const k of (i < 0 ? temas.map((_, x) => x) : [i])) {
 		const est = sel.find(s => +s.dataset.i === k)?.value; if (!est) { toast('Escolha um estilo'); continue; }
-		const r = await api('/lote', 'POST', { canalId: cid, quantidade: 1, temas: [temas[k].tema], estilos: [est], formato: fmt, instrucoes: inst }); n += r?.ids?.length || 0;
+		const r = await api('/lote', 'POST', { canalId: cid, quantidade: 1, temas: [temas[k].tema], estilos: [est], formato: fmt, instrucoes: inst, auto: true }); n += r?.ids?.length || 0;
 	}
 	toast(n + ' vídeo(s) na fila'); await atualizar(); videoUnico(cid);
 }
