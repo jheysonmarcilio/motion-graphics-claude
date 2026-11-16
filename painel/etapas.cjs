@@ -52,7 +52,7 @@ const PROMPTS = {
 
 	pesquisa: COMUM + 'Use a skill pesquisa-roteiro em MODO AUTOMÁTICO do painel (ninguém vai responder perguntas). Entrada do Passo 0 já definida: ' +
 		'tema = {{pesquisaTema}}; formato = {{formatoCurto}}; período = 12 meses; canal = o bloco CANAL acima (canal dark, se for o caso). ' +
-		'Rode a Parte 1 e a Parte 2 normalmente. No Passo 3, em vez de perguntar ao autor, NÃO marque nada como usado e termine respondendo SOMENTE com um JSON numa linha:\n' +
+		'Rode a Parte 1 e a Parte 2 normalmente, cada uma com o Agent em PRIMEIRO PLANO (nunca run_in_background: esta sessão termina quando você responde, então espere cada parte acabar antes de seguir). No Passo 3, em vez de perguntar ao autor, NÃO marque nada como usado e termine respondendo SOMENTE com um JSON numa linha:\n' +
 		'{"relatorio":"roteiros/pesquisas/<slug>.md","videos":[{"titulo":"…","canal":"…","url":"https://www.youtube.com/watch?v=…","views":123456}],"temas":[{"titulo":"…","tema":"assunto em 1 frase","gancho":"…","desenvolvimento":"…","final":"…"}]}\n' +
 		'("videos" = os 5 vídeos de sucesso que você analisou) ' +
 		'com as 10 sugestões, sem repetir estes temas já usados ou na fila do canal:\n{{historico}}',
